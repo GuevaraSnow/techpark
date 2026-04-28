@@ -1,8 +1,9 @@
 package Model;
 
 public abstract class Persona {
-    String nombre;
-    String documento;
+
+    protected String nombre;
+    protected String documento;
 
     public Persona(String nombre, String documento) {
         this.nombre = nombre;
@@ -12,6 +13,7 @@ public abstract class Persona {
     public String getNombre() {
         return nombre;
     }
+
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -19,12 +21,13 @@ public abstract class Persona {
     public String getDocumento() {
         return documento;
     }
+
     public void setDocumento(String documento) {
         this.documento = documento;
     }
 
     @Override
     public String toString() {
-        return nombre + " " + documento;
+        return nombre + " (Doc: " + documento + ")";
     }
 }

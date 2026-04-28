@@ -8,5 +8,16 @@ public abstract class Empleado extends Persona {
         this.cargo = cargo;
     }
 
-    public String getCargo() { return cargo; }
+    public String getCargo() {
+        return cargo;
+    }
+
+    public void setCargo(String cargo) {
+        this.cargo = cargo;
+    }
+
+    @Override
+    public String toString() {
+        return cargo + ": " + nombre + " (Doc: " + documento + ")";
+    }
 }
