@@ -1,10 +1,10 @@
 package Model;
 
-public abstract class persona {
+public abstract class Persona {
     String nombre;
     String documento;
 
-    public persona(String nombre, String documento) {
+    public Persona(String nombre, String documento) {
         this.nombre = nombre;
         this.documento = documento;
     }
