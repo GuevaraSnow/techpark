@@ -1,6 +1,6 @@
-package Model;
+package model;
 
-import Model.Ticket.Ticket;
+import model.ticket.Ticket;
 
 public class Visitante extends Persona {
 

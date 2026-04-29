@@ -1,4 +1,4 @@
-package Model.Atraccion;
+package model.atraccion;
 
 public enum EstadoAtraccion {
     ACTIVA,
