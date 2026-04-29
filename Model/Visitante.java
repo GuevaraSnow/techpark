@@ -1,5 +1,7 @@
 package Model;
 
+import Model.Ticket.Ticket;
+
 public class Visitante extends Persona {
 
     private int edad;

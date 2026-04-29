@@ -1,4 +1,4 @@
-package Model;
+package Model.Ticket;
 
 public enum TipoTicket {
     GENERAL, FAMILIAR, FASTPASS

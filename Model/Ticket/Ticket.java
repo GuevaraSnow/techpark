@@ -1,4 +1,4 @@
-package Model;
+package Model.Ticket;
 
 public abstract class Ticket {
     protected TipoTicket tipo;
