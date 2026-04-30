@@ -22,4 +22,27 @@ public class Zona {
     public void agregarOperador(Operador operador) {
         operadores.agregar(operador);
     }
+
+    public boolean tieneOperador() {
+        return !operadores.estaVacia();
+    }
+
+    public Atraccion getAtraccionPorId(int id) {
+        for (int i = 0; i < atracciones.tamaño(); i++) {
+            Atraccion a = atracciones.obtener(i);
+            if (a.getId() == id) return a;
+        }
+        return null;
+    }
+
+    // Getters
+    public String getNombre() { return nombre; }
+    public ListaEnlazada<Atraccion> getAtracciones() { return atracciones; }
+    public ListaEnlazada<Operador> getOperadores() { return operadores; }
+
+    @Override
+    public String toString() {
+        return "Zona: " + nombre + " | Atracciones: " + atracciones.tamaño()
+                + " | Operadores: " + operadores.tamaño();
+    }
 }
