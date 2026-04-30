@@ -1,6 +1,7 @@
 package model.atraccion;
 
 import model.Operador;
+import model.estructuras.ListaEnlazada;
 
 public class Zona {
 
