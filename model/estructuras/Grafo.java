@@ -95,4 +95,34 @@ public class Grafo {
         }
         return null;
     }
+    
+
+    public ListaEnlazada<Atraccion> BFS(int idOrigen) {
+        ListaEnlazada<Atraccion> resultado = new ListaEnlazada<>();
+        ListaEnlazada<Integer> visitados = new ListaEnlazada<>();
+        ListaEnlazada<Integer> cola = new ListaEnlazada<>();
+
+        if (buscarNodo(idOrigen) == null) return resultado;
+
+        cola.agregar(idOrigen);
+        visitados.agregar(idOrigen);
+
+        while (!cola.estaVacia()) {
+            int idActual = cola.obtener(0);
+            cola.eliminar(0);
+
+            resultado.agregar(getAtraccion(idActual));
+
+            ListaEnlazada<Integer> vecinos = getVecinos(idActual);
+            for (int i = 0; i < vecinos.tamaño(); i++) {
+                int idVecino = vecinos.obtener(i);
+                if (!visitados.contiene(idVecino)) {
+                    visitados.agregar(idVecino);
+                    cola.agregar(idVecino);
+                }
+            }
+        }
+
+        return resultado;
+    }
 }
