@@ -122,7 +122,83 @@ public class Grafo {
                 }
             }
         }
-
         return resultado;
+    }
+    public ListaEnlazada<Atraccion> dijkstra(int idOrigen, int idDestino) {
+        ListaEnlazada<Atraccion> ruta = new ListaEnlazada<>();
+        if (buscarNodo(idOrigen) == null || buscarNodo(idDestino) == null) return ruta;
+
+        // Distancias y predecesores
+        int[] ids = getIds();
+        double[] distancias = new double[ids.length];
+        int[] predecesores = new int[ids.length];
+        boolean[] visitados = new boolean[ids.length];
+
+        // Inicializar
+        for (int i = 0; i < ids.length; i++) {
+            distancias[i] = Double.MAX_VALUE;
+            predecesores[i] = -1;
+            visitados[i] = false;
+        }
+        distancias[indexOf(ids, idOrigen)] = 0;
+
+        for (int iter = 0; iter < ids.length; iter++) {
+            // Nodo no visitado con menor distancia
+            int idActual = -1;
+            double minDist = Double.MAX_VALUE;
+            for (int i = 0; i < ids.length; i++) {
+                if (!visitados[i] && distancias[i] < minDist) {
+                    minDist = distancias[i];
+                    idActual = ids[i];
+                }
+            }
+            if (idActual == -1) break;
+            visitados[indexOf(ids, idActual)] = true;
+
+            // Relajar vecinos
+            ListaEnlazada<Integer> vecinos = getVecinos(idActual);
+            for (int i = 0; i < vecinos.tamaño(); i++) {
+                int idVecino = vecinos.obtener(i);
+                int idxVecino = indexOf(ids, idVecino);
+                double nuevaDist = distancias[indexOf(ids, idActual)] + getPeso(idActual, idVecino);
+                if (nuevaDist < distancias[idxVecino]) {
+                    distancias[idxVecino] = nuevaDist;
+                    predecesores[idxVecino] = idActual;
+                }
+            }
+        }
+
+        // Reconstruir ruta desde destino hacia origen
+        ListaEnlazada<Atraccion> rutaInversa = new ListaEnlazada<>();
+        int actual = idDestino;
+        while (actual != -1) {
+            rutaInversa.agregar(getAtraccion(actual));
+            int idx = indexOf(ids, actual);
+            actual = predecesores[idx];
+        }
+
+        // Invertir para obtener ruta origen → destino
+        for (int i = rutaInversa.tamaño() - 1; i >= 0; i--) {
+            ruta.agregar(rutaInversa.obtener(i));
+        }
+
+        return ruta;
+    }
+
+    // Retorna array con todos los IDs de nodos del grafo
+    private int[] getIds() {
+        int[] ids = new int[nodos.tamaño()];
+        for (int i = 0; i < nodos.tamaño(); i++) {
+            ids[i] = nodos.obtener(i).atraccion.getId();
+        }
+        return ids;
+    }
+
+    // Busca el índice de un ID en el array
+    private int indexOf(int[] arr, int valor) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == valor) return i;
+        }
+        return -1;
     }
 }
