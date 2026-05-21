@@ -129,4 +129,34 @@ public class Parque {
         }
         return null;
     }
+
+    java// Agregar a Parque.java
+
+// ── Control de aforo ──────────────────────────────────────────────
+
+    public boolean registrarIngreso(Visitante visitante) {
+        if (aforoLleno()) return false;
+        visitantesActuales++;
+        agregarVisitante(visitante);
+        return true;
+    }
+
+    public void registrarSalida(Visitante visitante) {
+        if (visitantesActuales > 0) {
+            visitantesActuales--;
+            visitantes.eliminarDato(visitante);
+        }
+    }
+
+    public boolean aforoLleno() {
+        return visitantesActuales >= capacidadMaxima;
+    }
+
+    public int getAforoDisponible() {
+        return capacidadMaxima - visitantesActuales;
+    }
+
+    public double getPorcentajeOcupacion() {
+        return ((double) visitantesActuales / capacidadMaxima) * 100;
+    }
 }
