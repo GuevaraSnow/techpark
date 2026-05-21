@@ -93,4 +93,43 @@ public class ControlAcceso {
                         + atraccion.getCostoExtra()
                         + " al autorizar el ingreso.");
     }
+
+    // Ejecuta toda la cadena de validación y autoriza o rechaza el ingreso
+    public ResultadoValidacion autorizarIngreso(Visitante visitante, Atraccion atraccion) {
+
+        // 1. Validar estado de la atracción
+        ResultadoValidacion estadoResult = validarEstadoAtraccion(atraccion);
+        if (!estadoResult.aprobado) return estadoResult;
+
+        // 2. Validar restricciones de edad y estatura
+        ResultadoValidacion restriccionResult = validarRestricciones(visitante, atraccion);
+        if (!restriccionResult.aprobado) return restriccionResult;
+
+        // 3. Validar capacidad del ciclo actual
+        ResultadoValidacion capacidadResult = validarCapacidad(atraccion);
+        if (!capacidadResult.aprobado) return capacidadResult;
+
+        // 4. Validar saldo si aplica
+        ResultadoValidacion saldoResult = validarSaldo(visitante, atraccion);
+        if (!saldoResult.aprobado) return saldoResult;
+        
+
+        // Descontar saldo si hay costo extra
+        if (atraccion.getCostoExtra() > 0
+                && visitante.getTicket().getTipo() != model.ticket.TipoTicket.FASTPASS) {
+            visitante.descontarSaldo(atraccion.getCostoExtra());
+        }
+
+        // Incrementar contadores de la atracción
+        atraccion.incrementarContador();
+
+        // Registrar en historial del visitante
+        visitante.agregarAlHistorial(atraccion);
+
+        return new ResultadoValidacion(true,
+                "✅ Ingreso autorizado. Bienvenido/a a "
+                        + atraccion.getNombre() + ", " + visitante.getNombre() + "."
+                        + (atraccion.getCostoExtra() > 0 ? " Se descontaron $"
+                        + atraccion.getCostoExtra() + " de tu saldo." : ""));
+    }
 }
