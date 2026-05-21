@@ -45,4 +45,88 @@ public class Parque {
                 + " | Zonas: " + zonas.tamaño()
                 + " | Atracciones: " + mapa.tamaño();
     }
+
+    java// Agregar a Parque.java
+
+// ── Zonas ─────────────────────────────────────────────────────────
+
+    public void agregarZona(Zona zona) {
+        if (buscarZona(zona.getNombre()) == null) {
+            zonas.agregar(zona);
+        }
+    }
+
+    public Zona buscarZona(String nombre) {
+        for (int i = 0; i < zonas.tamaño(); i++) {
+            Zona z = zonas.obtener(i);
+            if (z.getNombre().equalsIgnoreCase(nombre)) return z;
+        }
+        return null;
+    }
+
+    public Zona buscarZonaPorId(int idAtraccion) {
+        for (int i = 0; i < zonas.tamaño(); i++) {
+            Zona z = zonas.obtener(i);
+            if (z.getAtraccionPorId(idAtraccion) != null) return z;
+        }
+        return null;
+    }
+
+// ── Atracciones ───────────────────────────────────────────────────
+
+    public boolean agregarAtraccionAZona(String nombreZona, Atraccion atraccion) {
+        Zona zona = buscarZona(nombreZona);
+        if (zona == null) return false;
+
+        // Agregar a la zona
+        zona.agregarAtraccion(atraccion);
+
+        // Agregar al catálogo ArbolBST
+        catalogoAtracciones.insertar(atraccion);
+
+        // Agregar al grafo como nodo
+        mapa.agregarNodo(atraccion);
+
+        return true;
+    }
+
+    public Atraccion buscarAtraccion(String nombre) {
+        return catalogoAtracciones.buscar(nombre);
+    }
+
+    public boolean eliminarAtraccion(String nombre) {
+        Atraccion atraccion = catalogoAtracciones.buscar(nombre);
+        if (atraccion == null) return false;
+
+        // Eliminar de su zona
+        Zona zona = buscarZonaPorId(atraccion.getId());
+        if (zona != null) {
+            zona.getAtracciones().eliminarDato(atraccion);
+        }
+
+        // Eliminar del catálogo
+        catalogoAtracciones.eliminar(nombre);
+
+        return true;
+    }
+
+// ── Empleados ─────────────────────────────────────────────────────
+
+    public void agregarEmpleado(Empleado empleado) {
+        empleados.agregar(empleado);
+    }
+
+// ── Visitantes ────────────────────────────────────────────────────
+
+    public void agregarVisitante(Visitante visitante) {
+        visitantes.agregar(visitante);
+    }
+
+    public Visitante buscarVisitante(String documento) {
+        for (int i = 0; i < visitantes.tamaño(); i++) {
+            Visitante v = visitantes.obtener(i);
+            if (v.getDocumento().equals(documento)) return v;
+        }
+        return null;
+    }
 }
