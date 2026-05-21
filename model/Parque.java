@@ -1,6 +1,7 @@
 package model;
 
 import model.atraccion.Atraccion;
+import model.atraccion.EstadoAtraccion;
 import model.atraccion.Zona;
 import model.estructuras.ArbolBST;
 import model.estructuras.Grafo;
@@ -45,8 +46,6 @@ public class Parque {
                 + " | Zonas: " + zonas.tamaño()
                 + " | Atracciones: " + mapa.tamaño();
     }
-
-    java// Agregar a Parque.java
 
 // ── Zonas ─────────────────────────────────────────────────────────
 
@@ -130,7 +129,6 @@ public class Parque {
         return null;
     }
 
-    java// Agregar a Parque.java
 
 // ── Control de aforo ──────────────────────────────────────────────
 
@@ -158,5 +156,59 @@ public class Parque {
 
     public double getPorcentajeOcupacion() {
         return ((double) visitantesActuales / capacidadMaxima) * 100;
+    }
+
+    // ── Alerta climática ──────────────────────────────────────────────
+
+    public int activarAlertaClimatica(String tipoAlerta) {
+        int atraccionesCerradas = 0;
+        String motivo = "Cierre por clima: " + tipoAlerta;
+
+        for (int i = 0; i < zonas.tamaño(); i++) {
+            Zona zona = zonas.obtener(i);
+            ListaEnlazada<Atraccion> atracciones = zona.getAtracciones();
+            for (int j = 0; j < atracciones.tamaño(); j++) {
+                Atraccion a = atracciones.obtener(j);
+                if (a.esAfectadaPorClima()
+                        && a.getEstado() != EstadoAtraccion.CERRADA) {
+                    a.cerrarPorClima(motivo);
+                    atraccionesCerradas++;
+                }
+            }
+        }
+        return atraccionesCerradas;
+    }
+
+    public void desactivarAlertaClimatica() {
+        for (int i = 0; i < zonas.tamaño(); i++) {
+            Zona zona = zonas.obtener(i);
+            ListaEnlazada<Atraccion> atracciones = zona.getAtracciones();
+            for (int j = 0; j < atracciones.tamaño(); j++) {
+                Atraccion a = atracciones.obtener(j);
+                if (a.getEstado() == EstadoAtraccion.CERRADA
+                        && a.getMotivoCierre() != null
+                        && a.getMotivoCierre().toLowerCase().contains("clima")) {
+                    a.setEstado(EstadoAtraccion.ACTIVA);
+                    a.setMotivoCierre("");
+                }
+            }
+        }
+    }
+
+    public ListaEnlazada<Atraccion> getAtraccionesCerradasPorClima() {
+        ListaEnlazada<Atraccion> resultado = new ListaEnlazada<>();
+        for (int i = 0; i < zonas.tamaño(); i++) {
+            Zona zona = zonas.obtener(i);
+            ListaEnlazada<Atraccion> atracciones = zona.getAtracciones();
+            for (int j = 0; j < atracciones.tamaño(); j++) {
+                Atraccion a = atracciones.obtener(j);
+                if (a.getEstado() == EstadoAtraccion.CERRADA
+                        && a.getMotivoCierre() != null
+                        && a.getMotivoCierre().toLowerCase().contains("clima")) {
+                    resultado.agregar(a);
+                }
+            }
+        }
+        return resultado;
     }
 }
