@@ -3,6 +3,7 @@ package model.gestores;
 import model.Visitante;
 import model.atraccion.Atraccion;
 import model.atraccion.EstadoAtraccion;
+import model.ticket.TipoTicket;
 
 public class ControlAcceso {
 
@@ -62,5 +63,34 @@ public class ControlAcceso {
                 "✅ Capacidad disponible: "
                         + (atraccion.getCapacidad() - atraccion.getContadorActual())
                         + " lugares.");
+    }
+
+    // Valida si el visitante tiene saldo suficiente para la atracción
+    public ResultadoValidacion validarSaldo(Visitante visitante, Atraccion atraccion) {
+
+        // FastPass no paga costo extra
+        if (visitante.getTicket().getTipo() == TipoTicket.FASTPASS) {
+            return new ResultadoValidacion(true,
+                    "✅ Ticket FastPass no requiere pago adicional.");
+        }
+
+        // Si la atracción no tiene costo extra no se valida saldo
+        if (atraccion.getCostoExtra() <= 0) {
+            return new ResultadoValidacion(true,
+                    "✅ Atracción sin costo adicional.");
+        }
+
+        // Verificar saldo suficiente
+        if (visitante.getSaldo() < atraccion.getCostoExtra()) {
+            return new ResultadoValidacion(false,
+                    "❌ Saldo insuficiente. Costo requerido: $"
+                            + atraccion.getCostoExtra()
+                            + " | Saldo actual: $" + visitante.getSaldo());
+        }
+
+        return new ResultadoValidacion(true,
+                "✅ Saldo suficiente. Se descontarán $"
+                        + atraccion.getCostoExtra()
+                        + " al autorizar el ingreso.");
     }
 }
