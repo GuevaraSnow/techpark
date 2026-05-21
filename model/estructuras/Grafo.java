@@ -201,4 +201,35 @@ public class Grafo {
         }
         return -1;
     }
+    
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== MAPA DEL PARQUE ===\n");
+        sb.append("Total de atracciones: ").append(nodos.tamaño()).append("\n\n");
+
+        for (int i = 0; i < nodos.tamaño(); i++) {
+            NodoGrafo nodo = nodos.obtener(i);
+            sb.append("🎢 [").append(nodo.atraccion.getId()).append("] ")
+                    .append(nodo.atraccion.getNombre())
+                    .append(" (").append(nodo.atraccion.getEstado()).append(")")
+                    .append("\n");
+
+            if (nodo.aristas.estaVacia()) {
+                sb.append("   └── Sin conexiones\n");
+            } else {
+                for (int j = 0; j < nodo.aristas.tamaño(); j++) {
+                    Arista a = nodo.aristas.obtener(j);
+                    Atraccion destino = getAtraccion(a.idDestino);
+                    String conector = (j == nodo.aristas.tamaño() - 1) ? "└──" : "├──";
+                    sb.append("   ").append(conector).append(" → ")
+                            .append(destino.getNombre())
+                            .append(" (").append(a.peso).append(" m)\n");
+                }
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }
