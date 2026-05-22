@@ -93,4 +93,32 @@ public class GestorReportes {
         }
         return resultado;
     }
+
+    public double getTiempoPromedioEspera() {
+        ListaEnlazada<Atraccion> activas = new ListaEnlazada<>();
+        ListaEnlazada<Atraccion> todas = getAllAtracciones();
+        double suma = 0;
+        int contador = 0;
+        for (int i = 0; i < todas.tamaño(); i++) {
+            Atraccion a = todas.obtener(i);
+            if (a.getEstado() == EstadoAtraccion.ACTIVA) {
+                suma += a.getTiempoEspera();
+                contador++;
+            }
+        }
+        return contador > 0 ? suma / contador : 0;
+    }
+
+    public String getResumenTiemposEspera() {
+        ListaEnlazada<Atraccion> todas = getAllAtracciones();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < todas.tamaño(); i++) {
+            Atraccion a = todas.obtener(i);
+            sb.append(a.getNombre())
+                    .append(": ~")
+                    .append((int) a.getTiempoEspera())
+                    .append(" min\n");
+        }
+        return sb.toString();
+    }
 }
