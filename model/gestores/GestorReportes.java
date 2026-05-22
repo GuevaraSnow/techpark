@@ -121,4 +121,24 @@ public class GestorReportes {
         }
         return sb.toString();
     }
+
+    public ListaEnlazada<Atraccion> getCierresPorClima() {
+        ListaEnlazada<Atraccion> resultado = new ListaEnlazada<>();
+        ListaEnlazada<Atraccion> todas = getAllAtracciones();
+        for (int i = 0; i < todas.tamaño(); i++) {
+            Atraccion a = todas.obtener(i);
+            if (a.getEstado() == EstadoAtraccion.CERRADA
+                    && a.getMotivoCierre() != null
+                    && (a.getMotivoCierre().toLowerCase().contains("clima")
+                    || a.getMotivoCierre().toLowerCase().contains("tormenta")
+                    || a.getMotivoCierre().toLowerCase().contains("lluvia"))) {
+                resultado.agregar(a);
+            }
+        }
+        return resultado;
+    }
+
+    public int getTotalCierresPorClima() {
+        return getCierresPorClima().tamaño();
+    }
 }
