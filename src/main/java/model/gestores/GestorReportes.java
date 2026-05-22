@@ -6,7 +6,6 @@ import model.atraccion.EstadoAtraccion;
 import model.atraccion.Zona;
 import model.estructuras.ListaEnlazada;
 import model.Visitante;
-import model.ticket.TipoTicket;
 
 public class GestorReportes {
 
