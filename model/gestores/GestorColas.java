@@ -101,5 +101,28 @@ public class GestorColas {
     public boolean encolarSeguro(Visitante visitante, Atraccion atraccion) {
         if (estaEnCola(visitante, atraccion)) return false;
         return encolar(visitante, atraccion);
-    }    
+    }
+
+    private ListaEnlazada<String> notificaciones;
+
+// Inicializar en constructor:
+
+    // Desencolar con registro de notificación
+    public Visitante desencolarConNotificacion(Atraccion atraccion) {
+        Visitante siguiente = desencolar(atraccion);
+        if (siguiente != null) {
+            String notif = "✅ " + siguiente.getNombre()
+                    + " — es tu turno en: " + atraccion.getNombre();
+            notificaciones.agregar(notif);
+        }
+        return siguiente;
+    }
+
+    public ListaEnlazada<String> getNotificaciones() {
+        return notificaciones;
+    }
+
+    public void limpiarNotificaciones() {
+        notificaciones = new ListaEnlazada<>();
+    }
 }
