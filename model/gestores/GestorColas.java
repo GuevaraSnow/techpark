@@ -74,4 +74,32 @@ public class GestorColas {
         }
         return null;
     }
+
+    // Verifica si un visitante ya está en la cola de una atracción
+    public boolean estaEnCola(Visitante visitante, Atraccion atraccion) {
+        EntradaCola entrada = buscarEntrada(atraccion.getId());
+        if (entrada == null) return false;
+        // Recorrer la cola buscando al visitante por documento
+        ColaPrioridad<Visitante> copiaCola = new ColaPrioridad<>();
+        boolean encontrado = false;
+        while (!entrada.cola.estaVacia()) {
+            Visitante v = entrada.cola.desencolar();
+            if (v.getDocumento().equals(visitante.getDocumento())) {
+                encontrado = true;
+            }
+            copiaCola.encolar(v, v.getTicket().getPrioridad());
+        }
+        // Restaurar la cola original
+        while (!copiaCola.estaVacia()) {
+            Visitante v = copiaCola.desencolar();
+            entrada.cola.encolar(v, v.getTicket().getPrioridad());
+        }
+        return encontrado;
+    }
+
+    // Encolar con validación: no permitir duplicados en cola
+    public boolean encolarSeguro(Visitante visitante, Atraccion atraccion) {
+        if (estaEnCola(visitante, atraccion)) return false;
+        return encolar(visitante, atraccion);
+    }    
 }
