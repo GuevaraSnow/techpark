@@ -125,4 +125,30 @@ public class GestorColas {
     public void limpiarNotificaciones() {
         notificaciones = new ListaEnlazada<>();
     }
+
+    public int getPosicion(Visitante visitante, Atraccion atraccion) {
+        EntradaCola entrada = buscarEntrada(atraccion.getId());
+        if (entrada == null || entrada.cola.estaVacia()) return -1;
+
+        ColaPrioridad<Visitante> copiaCola = new ColaPrioridad<>();
+        int posicion = -1;
+        int contador = 1;
+
+        while (!entrada.cola.estaVacia()) {
+            Visitante v = entrada.cola.desencolar();
+            if (v.getDocumento().equals(visitante.getDocumento())) {
+                posicion = contador;
+            }
+            copiaCola.encolar(v, v.getTicket().getPrioridad());
+            contador++;
+        }
+
+        // Restaurar cola
+        while (!copiaCola.estaVacia()) {
+            Visitante v = copiaCola.desencolar();
+            entrada.cola.encolar(v, v.getTicket().getPrioridad());
+        }
+
+        return posicion; // -1 si no está en cola
+    }
 }
