@@ -64,4 +64,33 @@ public class GestorReportes {
                 + "FastPass: " + cFastpass + " tickets ($" + fastpass + ")\n"
                 + "TOTAL: $" + (general + familiar + fastpass);
     }
+
+    public ListaEnlazada<Atraccion> getAtraccionesMasVisitadas(int top) {
+        ListaEnlazada<Atraccion> todas = getAllAtracciones();
+        // Ordenar por contadorVisitantes descendente (burbuja)
+        for (int i = 0; i < todas.tamaño() - 1; i++) {
+            for (int j = 0; j < todas.tamaño() - i - 1; j++) {
+                Atraccion a = todas.obtener(j);
+                Atraccion b = todas.obtener(j + 1);
+                if (a.getContadorVisitantes() < b.getContadorVisitantes()) {
+                    // Intercambiar
+                    todas.eliminar(j);
+                    todas.eliminar(j); // b sube a posición j
+                    ListaEnlazada<Atraccion> temp = new ListaEnlazada<>();
+                    for (int k = 0; k < j; k++) temp.agregar(todas.obtener(k));
+                    temp.agregar(b);
+                    temp.agregar(a);
+                    for (int k = j; k < todas.tamaño(); k++) temp.agregar(todas.obtener(k));
+                    todas = temp;
+                }
+            }
+        }
+        // Retornar solo el top solicitado
+        ListaEnlazada<Atraccion> resultado = new ListaEnlazada<>();
+        int limite = Math.min(top, todas.tamaño());
+        for (int i = 0; i < limite; i++) {
+            resultado.agregar(todas.obtener(i));
+        }
+        return resultado;
+    }
 }
