@@ -1,13 +1,20 @@
 {
-  "parque": {
-    "nombre": "Tech-Park UQ",
-    "capacidadMaxima": 500
-  },
   "zonas": [
-    { "nombre": "Zona Aventura" },
-    { "nombre": "Zona Acuática" },
-    { "nombre": "Zona Infantil" },
-    { "nombre": "Zona Extrema" }
+    {
+      "nombre": "Zona Aventura"
+    },
+    {
+      "nombre": "Zona Acuática"
+    },
+    {
+      "nombre": "Zona Infantil"
+    },
+    {
+      "nombre": "Zona Extrema"
+    },
+    {
+      "nombre": "Zona alturas"
+    }
   ],
   "atracciones": [
     {
@@ -15,70 +22,10 @@
       "nombre": "Montaña Rusa",
       "tipo": "mecánica de altura",
       "capacidad": 20,
-      "alturaMin": 1.40,
+      "alturaMin": 1.4,
       "edadMin": 12,
-      "costoExtra": 5000,
+      "costoExtra": 5000.0,
       "zona": "Zona Aventura"
-    },
-    {
-      "id": 2,
-      "nombre": "Torre del Terror",
-      "tipo": "mecánica de altura",
-      "capacidad": 16,
-      "alturaMin": 1.35,
-      "edadMin": 14,
-      "costoExtra": 4000,
-      "zona": "Zona Extrema"
-    },
-    {
-      "id": 3,
-      "nombre": "Tobogán Acuático",
-      "tipo": "acuática",
-      "capacidad": 15,
-      "alturaMin": 1.20,
-      "edadMin": 8,
-      "costoExtra": 3000,
-      "zona": "Zona Acuática"
-    },
-    {
-      "id": 4,
-      "nombre": "Río Loco",
-      "tipo": "acuática",
-      "capacidad": 25,
-      "alturaMin": 1.10,
-      "edadMin": 6,
-      "costoExtra": 2000,
-      "zona": "Zona Acuática"
-    },
-    {
-      "id": 5,
-      "nombre": "Carrusel Mágico",
-      "tipo": "otra",
-      "capacidad": 30,
-      "alturaMin": 0.80,
-      "edadMin": 3,
-      "costoExtra": 0,
-      "zona": "Zona Infantil"
-    },
-    {
-      "id": 6,
-      "nombre": "Tren Fantasma",
-      "tipo": "otra",
-      "capacidad": 18,
-      "alturaMin": 1.00,
-      "edadMin": 7,
-      "costoExtra": 1500,
-      "zona": "Zona Infantil"
-    },
-    {
-      "id": 7,
-      "nombre": "Zipper",
-      "tipo": "mecánica de altura",
-      "capacidad": 12,
-      "alturaMin": 1.45,
-      "edadMin": 16,
-      "costoExtra": 6000,
-      "zona": "Zona Extrema"
     },
     {
       "id": 8,
@@ -87,8 +34,68 @@
       "capacidad": 40,
       "alturaMin": 0.0,
       "edadMin": 5,
-      "costoExtra": 0,
+      "costoExtra": 0.0,
       "zona": "Zona Aventura"
+    },
+    {
+      "id": 3,
+      "nombre": "Tobogán Acuático",
+      "tipo": "acuática",
+      "capacidad": 15,
+      "alturaMin": 1.2,
+      "edadMin": 8,
+      "costoExtra": 3000.0,
+      "zona": "Zona Acuática"
+    },
+    {
+      "id": 4,
+      "nombre": "Río Loco",
+      "tipo": "acuática",
+      "capacidad": 25,
+      "alturaMin": 1.1,
+      "edadMin": 6,
+      "costoExtra": 2000.0,
+      "zona": "Zona Acuática"
+    },
+    {
+      "id": 5,
+      "nombre": "Carrusel Mágico",
+      "tipo": "otra",
+      "capacidad": 30,
+      "alturaMin": 0.8,
+      "edadMin": 3,
+      "costoExtra": 0.0,
+      "zona": "Zona Infantil"
+    },
+    {
+      "id": 6,
+      "nombre": "Tren Fantasma",
+      "tipo": "otra",
+      "capacidad": 18,
+      "alturaMin": 1.0,
+      "edadMin": 7,
+      "costoExtra": 1500.0,
+      "zona": "Zona Infantil"
+    },
+    {
+      "id": 2,
+      "nombre": "Torre del Terror",
+      "tipo": "mecánica de altura",
+      "capacidad": 16,
+      "alturaMin": 1.35,
+      "edadMin": 14,
+      "costoExtra": 4000.0,
+      "zona": "Zona Extrema"
+    },
+    {
+      "id": 7,
+      "nombre": "Zipper",
+      "tipo": "mecánica de altura",
+      "capacidad": 12,
+      "alturaMin": 1.45,
+      "edadMin": 16,
+      "costoExtra": 6000.0,
+      "zona": "Zona Extrema"
     }
   ],
   "visitantes": [
@@ -97,7 +104,7 @@
       "documento": "1001234567",
       "edad": 25,
       "estatura": 1.75,
-      "saldo": 50000,
+      "saldo": 50000.0,
       "tipoTicket": "FASTPASS"
     },
     {
@@ -105,7 +112,7 @@
       "documento": "1009876543",
       "edad": 30,
       "estatura": 1.62,
-      "saldo": 30000,
+      "saldo": 30000.0,
       "tipoTicket": "GENERAL"
     },
     {
@@ -113,34 +120,90 @@
       "documento": "1005554433",
       "edad": 17,
       "estatura": 1.55,
-      "saldo": 20000,
+      "saldo": 20000.0,
       "tipoTicket": "GENERAL"
     },
     {
       "nombre": "Ana Gómez",
       "documento": "1002223344",
       "edad": 10,
-      "estatura": 1.30,
-      "saldo": 15000,
+      "estatura": 1.3,
+      "saldo": 15000.0,
       "tipoTicket": "FAMILIAR"
     }
   ],
   "operadores": [
-    { "nombre": "Luis Herrera",   "documento": "1011111111", "zona": "Zona Aventura" },
-    { "nombre": "Sara Castro",    "documento": "1022222222", "zona": "Zona Acuática" },
-    { "nombre": "Pedro Vargas",   "documento": "1033333333", "zona": "Zona Infantil" },
-    { "nombre": "Diana Morales",  "documento": "1044444444", "zona": "Zona Extrema"  }
+    {
+      "nombre": "Luis Herrera",
+      "documento": "1011111111",
+      "zona": "Zona Aventura"
+    },
+    {
+      "nombre": "Sara Castro",
+      "documento": "1022222222",
+      "zona": "Zona Acuática"
+    },
+    {
+      "nombre": "Pedro Vargas",
+      "documento": "1033333333",
+      "zona": "Zona Infantil"
+    },
+    {
+      "nombre": "Diana Morales",
+      "documento": "1044444444",
+      "zona": "Zona Extrema"
+    }
   ],
   "senderos": [
-    { "origen": 1, "destino": 2, "peso": 120 },
-    { "origen": 1, "destino": 5, "peso": 200 },
-    { "origen": 2, "destino": 7, "peso": 80  },
-    { "origen": 3, "destino": 4, "peso": 60  },
-    { "origen": 3, "destino": 6, "peso": 150 },
-    { "origen": 4, "destino": 5, "peso": 180 },
-    { "origen": 5, "destino": 6, "peso": 90  },
-    { "origen": 6, "destino": 8, "peso": 110 },
-    { "origen": 7, "destino": 8, "peso": 95  },
-    { "origen": 8, "destino": 1, "peso": 160 }
+    {
+      "origen": 1,
+      "destino": 2,
+      "peso": 120.0
+    },
+    {
+      "origen": 1,
+      "destino": 5,
+      "peso": 200.0
+    },
+    {
+      "origen": 1,
+      "destino": 8,
+      "peso": 160.0
+    },
+    {
+      "origen": 3,
+      "destino": 4,
+      "peso": 60.0
+    },
+    {
+      "origen": 3,
+      "destino": 6,
+      "peso": 150.0
+    },
+    {
+      "origen": 4,
+      "destino": 5,
+      "peso": 180.0
+    },
+    {
+      "origen": 5,
+      "destino": 6,
+      "peso": 90.0
+    },
+    {
+      "origen": 6,
+      "destino": 8,
+      "peso": 110.0
+    },
+    {
+      "origen": 2,
+      "destino": 7,
+      "peso": 80.0
+    },
+    {
+      "origen": 7,
+      "destino": 8,
+      "peso": 95.0
+    }
   ]
 }

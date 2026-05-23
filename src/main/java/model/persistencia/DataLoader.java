@@ -130,14 +130,97 @@ public class DataLoader {
     // ── Guardar estado actual del parque en JSON ──────────────────
     public void guardarEstado(String rutaArchivo) {
         JsonObject root = new JsonObject();
-        JsonArray zonas = new JsonArray();
 
+        // Zonas
+        JsonArray zonas = new JsonArray();
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {
             JsonObject z = new JsonObject();
             z.addProperty("nombre", parque.getZonas().obtener(i).getNombre());
             zonas.add(z);
         }
         root.add("zonas", zonas);
+
+        // Atracciones
+        JsonArray atracciones = new JsonArray();
+        for (int i = 0; i < parque.getZonas().tamaño(); i++) {
+            Zona zona = parque.getZonas().obtener(i);
+            for (int j = 0; j < zona.getAtracciones().tamaño(); j++) {
+                Atraccion a = zona.getAtracciones().obtener(j);
+                JsonObject obj = new JsonObject();
+                obj.addProperty("id",        a.getId());
+                obj.addProperty("nombre",    a.getNombre());
+                obj.addProperty("tipo",      a.getTipo());
+                obj.addProperty("capacidad", a.getCapacidad());
+                obj.addProperty("alturaMin", a.getAlturaMin());
+                obj.addProperty("edadMin",   a.getEdadMin());
+                obj.addProperty("costoExtra",a.getCostoExtra());
+                obj.addProperty("zona",      zona.getNombre());
+                atracciones.add(obj);
+            }
+        }
+        root.add("atracciones", atracciones);
+
+        // Visitantes
+        JsonArray visitantes = new JsonArray();
+        for (int i = 0; i < parque.getVisitantes().tamaño(); i++) {
+            model.Visitante v = parque.getVisitantes().obtener(i);
+            JsonObject obj = new JsonObject();
+            obj.addProperty("nombre",     v.getNombre());
+            obj.addProperty("documento",  v.getDocumento());
+            obj.addProperty("edad",       v.getEdad());
+            obj.addProperty("estatura",   v.getEstatura());
+            obj.addProperty("saldo",      v.getSaldo());
+            obj.addProperty("tipoTicket", v.getTicket() != null ?
+                    v.getTicket().getTipo().toString() : "GENERAL");
+            visitantes.add(obj);
+        }
+        root.add("visitantes", visitantes);
+
+        // Operadores
+        JsonArray operadores = new JsonArray();
+        for (int i = 0; i < parque.getEmpleados().tamaño(); i++) {
+            model.Empleado emp = parque.getEmpleados().obtener(i);
+            if (emp instanceof model.Operador) {
+                model.Operador op = (model.Operador) emp;
+                JsonObject obj = new JsonObject();
+                obj.addProperty("nombre",    op.getNombre());
+                obj.addProperty("documento", op.getDocumento());
+                // Buscar zona del operador
+                String zonaOp = "Sin zona";
+                for (int j = 0; j < parque.getZonas().tamaño(); j++) {
+                    Zona zona = parque.getZonas().obtener(j);
+                    for (int k = 0; k < zona.getOperadores().tamaño(); k++) {
+                        if (zona.getOperadores().obtener(k)
+                                .getDocumento().equals(op.getDocumento())) {
+                            zonaOp = zona.getNombre();
+                        }
+                    }
+                }
+                obj.addProperty("zona", zonaOp);
+                operadores.add(obj);
+            }
+        }
+        root.add("operadores", operadores);
+
+        // Senderos
+        JsonArray senderos = new JsonArray();
+        model.estructuras.ListaEnlazada<Atraccion> nodos =
+                parque.getMapa().getAtracciones();
+        for (int i = 0; i < nodos.tamaño(); i++) {
+            Atraccion origen = nodos.obtener(i);
+            model.estructuras.ListaEnlazada<Integer> vecinos =
+                    parque.getMapa().getVecinos(origen.getId());
+            for (int j = 0; j < vecinos.tamaño(); j++) {
+                int idDest = vecinos.obtener(j);
+                if (idDest <= origen.getId()) continue;
+                JsonObject obj = new JsonObject();
+                obj.addProperty("origen",  origen.getId());
+                obj.addProperty("destino", idDest);
+                obj.addProperty("peso",    parque.getMapa().getPeso(origen.getId(), idDest));
+                senderos.add(obj);
+            }
+        }
+        root.add("senderos", senderos);
 
         try (Writer writer = new FileWriter(rutaArchivo)) {
             new GsonBuilder().setPrettyPrinting().create().toJson(root, writer);
