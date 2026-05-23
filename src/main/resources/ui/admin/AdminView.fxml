@@ -2,54 +2,64 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import java.net.URL?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ui.admin.AdminController"
             prefWidth="1280"
             prefHeight="720">
 
-    <!-- Sidebar -->
     <left>
-        <VBox spacing="10"
+        <VBox styleClass="sidebar"
               prefWidth="200"
-              style="-fx-background-color: #1F3864; -fx-padding: 20;">
+              style="-fx-background-color: #1F3864; -fx-padding: 20; -fx-spacing: 8;">
 
             <Label text="⚙ ADMINISTRADOR"
-                   style="-fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold;"/>
+                   styleClass="sidebar-titulo"
+                   style="-fx-text-fill: #FFD700; -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 0 0 10 5;"/>
 
-            <Separator/>
+            <Separator style="-fx-background-color: rgba(255,255,255,0.2);"/>
 
             <Button text="🗺 Zonas"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarZonas"
                     maxWidth="Infinity"/>
 
             <Button text="🎢 Atracciones"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarAtracciones"
                     maxWidth="Infinity"/>
 
             <Button text="👥 Empleados"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarEmpleados"
                     maxWidth="Infinity"/>
 
             <Button text="🔔 Alertas"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarAlertas"
                     maxWidth="Infinity"/>
 
             <Button text="📊 Estadísticas"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarEstadisticas"
                     maxWidth="Infinity"/>
 
             <Button text="🗾 Mapa"
+                    styleClass="sidebar-btn"
                     onAction="#mostrarMapa"
                     maxWidth="Infinity"/>
 
         </VBox>
     </left>
 
-    <!-- Panel Central -->
     <center>
         <StackPane fx:id="panelCentral"
-                   style="-fx-background-color: #F5F5F5;"/>
+                   styleClass="panel-central"/>
     </center>
+
+    <stylesheets>
+        <URL value="@../../styles/styles.css"/>
+    </stylesheets>
 
 </BorderPane>
