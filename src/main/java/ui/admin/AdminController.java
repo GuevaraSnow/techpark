@@ -272,36 +272,40 @@ public class AdminController {
     @FXML
     void mostrarAlertas() {
         panelCentral.getChildren().clear();
-        VBox panel = new VBox(10);
+        VBox panel = new VBox(12);
         panel.setPadding(new Insets(20));
 
         Label titulo = new Label("🔔 Alertas del Sistema");
         titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
 
-        ListView<String> listaAlertas = new ListView<>();
+        // ── Alertas activas ───────────────────────────────────────
+        Label lblActivas = new Label("⚡ Alertas activas");
+        lblActivas.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #C0392B;");
 
-        // Alertas de mantenimiento
+        ListView<String> listaActivas = new ListView<>();
+        listaActivas.setPrefHeight(120);
+
         model.gestores.GestorMantenimiento gestor =
                 new model.gestores.GestorMantenimiento(parque);
         gestor.verificarYGenerarAlertas();
         while (gestor.hayAlertas()) {
-            listaAlertas.getItems().add(gestor.atenderSiguienteAlerta());
+            listaActivas.getItems().add(gestor.atenderSiguienteAlerta());
         }
 
-        // Alertas climáticas
         model.gestores.GestorReportes reportes =
                 new model.gestores.GestorReportes(parque);
         ListaEnlazada<Atraccion> cerradasClima = reportes.getCierresPorClima();
         for (int i = 0; i < cerradasClima.tamaño(); i++) {
             Atraccion a = cerradasClima.obtener(i);
-            listaAlertas.getItems().add("🌧 CIERRE CLIMÁTICO | "
+            listaActivas.getItems().add("🌧 ACTIVA | "
                     + a.getNombre() + " | " + a.getMotivoCierre());
         }
 
-        if (listaAlertas.getItems().isEmpty()) {
-            listaAlertas.getItems().add("✅ No hay alertas pendientes.");
+        if (listaActivas.getItems().isEmpty()) {
+            listaActivas.getItems().add("✅ No hay alertas activas.");
         }
 
+        // ── Botón desactivar ──────────────────────────────────────
         Button btnDesactivar = new Button("☀ Desactivar Alerta Climática");
         btnDesactivar.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
@@ -311,7 +315,29 @@ public class AdminController {
             mostrarAlertas();
         });
 
-        panel.getChildren().addAll(titulo, listaAlertas, btnDesactivar);
+        // ── Historial de la sesión ────────────────────────────────
+        Label lblHistorial = new Label("📋 Historial de la sesión");
+        lblHistorial.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        ListView<String> listaHistorial = new ListView<>();
+        listaHistorial.setPrefHeight(250);
+
+        ListaEnlazada<String> historial = parque.getHistorialNotificaciones();
+        if (historial.estaVacia()) {
+            listaHistorial.getItems().add("Sin notificaciones en esta sesión.");
+        } else {
+            // Mostrar más reciente primero
+            for (int i = historial.tamaño() - 1; i >= 0; i--) {
+                listaHistorial.getItems().add(historial.obtener(i));
+            }
+        }
+
+        panel.getChildren().addAll(
+                titulo,
+                lblActivas, listaActivas,
+                btnDesactivar,
+                lblHistorial, listaHistorial
+        );
         panelCentral.getChildren().add(panel);
     }
 
@@ -381,7 +407,6 @@ public class AdminController {
         panelGrafo.setStyle("-fx-background-color: #F8FAFF; -fx-border-color: #D0D7E3; "
                 + "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-        // Coordenadas en círculo
         Map<Integer, double[]> coords = new HashMap<>();
         int total = atracciones.tamaño();
         double cx = 500, cy = 260, radio = 210;
@@ -392,7 +417,6 @@ public class AdminController {
                             cy + radio * Math.sin(angulo)});
         }
 
-        // Dibujo inicial
         dibujarAristas(panelGrafo, coords, atracciones);
         dibujarNodos(panelGrafo, coords, atracciones);
 
@@ -409,7 +433,6 @@ public class AdminController {
             Atraccion destino = parque.buscarAtraccion(nombreDestino);
             if (origen == null || destino == null) return;
 
-            // Limpiar y redibujar antes de pintar nueva ruta
             panelGrafo.getChildren().clear();
             dibujarAristas(panelGrafo, coords, atracciones);
             dibujarNodos(panelGrafo, coords, atracciones);
