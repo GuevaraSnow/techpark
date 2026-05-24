@@ -17,6 +17,7 @@ public class Parque {
     private ListaEnlazada<Empleado> empleados;
     private ArbolBST catalogoAtracciones;
     private Grafo mapa;
+    private ListaEnlazada<String> historialNotificaciones;
 
     public Parque(String nombre, int capacidadMaxima) {
         this.nombre = nombre;
@@ -27,31 +28,28 @@ public class Parque {
         this.empleados = new ListaEnlazada<>();
         this.catalogoAtracciones = new ArbolBST();
         this.mapa = new Grafo();
+        this.historialNotificaciones = new ListaEnlazada<>();
     }
 
-    // Getters
-    public String getNombre() { return nombre; }
-    public int getCapacidadMaxima() { return capacidadMaxima; }
-    public int getVisitantesActuales() { return visitantesActuales; }
-    public ListaEnlazada<Zona> getZonas() { return zonas; }
-    public ListaEnlazada<Visitante> getVisitantes() { return visitantes; }
-    public ListaEnlazada<Empleado> getEmpleados() { return empleados; }
-    public ArbolBST getCatalogoAtracciones() { return catalogoAtracciones; }
-    public Grafo getMapa() { return mapa; }
+    // ── Notificaciones ────────────────────────────────────────────
 
-    @Override
-    public String toString() {
-        return "Parque: " + nombre
-                + " | Aforo: " + visitantesActuales + "/" + capacidadMaxima
-                + " | Zonas: " + zonas.tamaño()
-                + " | Atracciones: " + mapa.tamaño();
+    public void registrarNotificacion(String mensaje) {
+        String hora = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter
+                        .ofPattern("dd/MM/yyyy HH:mm:ss"));
+        historialNotificaciones.agregar("[" + hora + "] " + mensaje);
     }
 
-// ── Zonas ─────────────────────────────────────────────────────────
+    public ListaEnlazada<String> getHistorialNotificaciones() {
+        return historialNotificaciones;
+    }
+
+    // ── Zonas ─────────────────────────────────────────────────────
 
     public void agregarZona(Zona zona) {
         if (buscarZona(zona.getNombre()) == null) {
             zonas.agregar(zona);
+            registrarNotificacion("🗺 Zona creada: " + zona.getNombre());
         }
     }
 
@@ -71,21 +69,14 @@ public class Parque {
         return null;
     }
 
-// ── Atracciones ───────────────────────────────────────────────────
+    // ── Atracciones ───────────────────────────────────────────────
 
     public boolean agregarAtraccionAZona(String nombreZona, Atraccion atraccion) {
         Zona zona = buscarZona(nombreZona);
         if (zona == null) return false;
-
-        // Agregar a la zona
         zona.agregarAtraccion(atraccion);
-
-        // Agregar al catálogo ArbolBST
         catalogoAtracciones.insertar(atraccion);
-
-        // Agregar al grafo como nodo
         mapa.agregarNodo(atraccion);
-
         return true;
     }
 
@@ -96,26 +87,22 @@ public class Parque {
     public boolean eliminarAtraccion(String nombre) {
         Atraccion atraccion = catalogoAtracciones.buscar(nombre);
         if (atraccion == null) return false;
-
-        // Eliminar de su zona
         Zona zona = buscarZonaPorId(atraccion.getId());
         if (zona != null) {
             zona.getAtracciones().eliminarDato(atraccion);
         }
-
-        // Eliminar del catálogo
         catalogoAtracciones.eliminar(nombre);
-
+        registrarNotificacion("🗑 Atracción eliminada: " + nombre);
         return true;
     }
 
-// ── Empleados ─────────────────────────────────────────────────────
+    // ── Empleados ─────────────────────────────────────────────────
 
     public void agregarEmpleado(Empleado empleado) {
         empleados.agregar(empleado);
     }
 
-// ── Visitantes ────────────────────────────────────────────────────
+    // ── Visitantes ────────────────────────────────────────────────
 
     public void agregarVisitante(Visitante visitante) {
         visitantes.agregar(visitante);
@@ -129,8 +116,7 @@ public class Parque {
         return null;
     }
 
-
-// ── Control de aforo ──────────────────────────────────────────────
+    // ── Aforo ─────────────────────────────────────────────────────
 
     public boolean registrarIngreso(Visitante visitante) {
         if (aforoLleno()) return false;
@@ -158,7 +144,7 @@ public class Parque {
         return ((double) visitantesActuales / capacidadMaxima) * 100;
     }
 
-    // ── Alerta climática ──────────────────────────────────────────────
+    // ── Alerta climática ──────────────────────────────────────────
 
     public int activarAlertaClimatica(String tipoAlerta) {
         int atraccionesCerradas = 0;
@@ -173,9 +159,17 @@ public class Parque {
                         && a.getEstado() != EstadoAtraccion.CERRADA) {
                     a.cerrarPorClima(motivo);
                     atraccionesCerradas++;
+                    registrarNotificacion("🌧 ALERTA CLIMÁTICA — "
+                            + a.getNombre() + " cerrada por: " + tipoAlerta);
                 }
             }
         }
+
+        if (atraccionesCerradas > 0) {
+            registrarNotificacion("⚠ Total atracciones cerradas: "
+                    + atraccionesCerradas + " | Motivo: " + tipoAlerta);
+        }
+
         return atraccionesCerradas;
     }
 
@@ -193,6 +187,7 @@ public class Parque {
                 }
             }
         }
+        registrarNotificacion("☀ Alerta climática desactivada por el administrador.");
     }
 
     public ListaEnlazada<Atraccion> getAtraccionesCerradasPorClima() {
@@ -210,5 +205,24 @@ public class Parque {
             }
         }
         return resultado;
+    }
+
+    // ── Getters ───────────────────────────────────────────────────
+
+    public String getNombre() { return nombre; }
+    public int getCapacidadMaxima() { return capacidadMaxima; }
+    public int getVisitantesActuales() { return visitantesActuales; }
+    public ListaEnlazada<Zona> getZonas() { return zonas; }
+    public ListaEnlazada<Visitante> getVisitantes() { return visitantes; }
+    public ListaEnlazada<Empleado> getEmpleados() { return empleados; }
+    public ArbolBST getCatalogoAtracciones() { return catalogoAtracciones; }
+    public Grafo getMapa() { return mapa; }
+
+    @Override
+    public String toString() {
+        return "Parque: " + nombre
+                + " | Aforo: " + visitantesActuales + "/" + capacidadMaxima
+                + " | Zonas: " + zonas.tamaño()
+                + " | Atracciones: " + mapa.tamaño();
     }
 }
