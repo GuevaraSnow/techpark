@@ -4,12 +4,12 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Line;
 import model.Parque;
 import model.atraccion.Atraccion;
 import model.atraccion.Zona;
 import model.estructuras.ListaEnlazada;
 import techpark.Main;
-import javafx.scene.shape.Line;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,7 +77,6 @@ public class AdminController {
         Label titulo = new Label("🎢 Atracciones del Parque");
         titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
 
-        // Tabla
         TableView<String[]> tabla = new TableView<>();
         TableColumn<String[], String> colNombre     = new TableColumn<>("Nombre");
         TableColumn<String[], String> colTipo       = new TableColumn<>("Tipo");
@@ -118,7 +117,6 @@ public class AdminController {
         tabla.setPrefHeight(280);
         actualizarTablaAtracciones(tabla);
 
-        // Formulario
         Label lblFormulario = new Label("➕ Nueva Atracción");
         lblFormulario.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
 
@@ -151,14 +149,14 @@ public class AdminController {
                 + "-fx-background-radius: 6; -fx-cursor: hand;");
         btnCrear.setOnAction(e -> {
             try {
-                int id         = Integer.parseInt(txtId.getText().trim());
-                String nombre  = txtNombre.getText().trim();
-                String tipo    = cbTipo.getValue();
-                String zona    = cbZona.getValue();
-                int capacidad  = Integer.parseInt(txtCapacidad.getText().trim());
-                double altMin  = Double.parseDouble(txtAlturaMin.getText().trim());
-                int edadMin    = Integer.parseInt(txtEdadMin.getText().trim());
-                double costo   = Double.parseDouble(txtCosto.getText().trim());
+                int id        = Integer.parseInt(txtId.getText().trim());
+                String nombre = txtNombre.getText().trim();
+                String tipo   = cbTipo.getValue();
+                String zona   = cbZona.getValue();
+                int capacidad = Integer.parseInt(txtCapacidad.getText().trim());
+                double altMin = Double.parseDouble(txtAlturaMin.getText().trim());
+                int edadMin   = Integer.parseInt(txtEdadMin.getText().trim());
+                double costo  = Double.parseDouble(txtCosto.getText().trim());
 
                 if (nombre.isEmpty() || tipo == null || zona == null) {
                     mostrarAlerta(Alert.AlertType.WARNING,
@@ -202,7 +200,19 @@ public class AdminController {
             });
         });
 
-        HBox botones = new HBox(10, btnCrear, btnClima);
+        Button btnDesactivarClima = new Button("☀ Desactivar Alerta");
+        btnDesactivarClima.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnDesactivarClima.setOnAction(e -> {
+            parque.desactivarAlertaClimatica();
+            actualizarTablaAtracciones(tabla);
+            mostrarAlerta(Alert.AlertType.INFORMATION,
+                    "Alerta desactivada",
+                    "☀ Alerta climática desactivada. Atracciones afectadas volvieron a ACTIVA.");
+        });
+
+        HBox botones = new HBox(10, btnCrear, btnClima, btnDesactivarClima);
         panel.getChildren().addAll(titulo, tabla, lblFormulario, grid, botones);
         panelCentral.getChildren().add(panel);
     }
@@ -265,23 +275,43 @@ public class AdminController {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(20));
 
-        Label titulo = new Label("🔔 Alertas de Mantenimiento");
+        Label titulo = new Label("🔔 Alertas del Sistema");
         titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
 
+        ListView<String> listaAlertas = new ListView<>();
+
+        // Alertas de mantenimiento
         model.gestores.GestorMantenimiento gestor =
                 new model.gestores.GestorMantenimiento(parque);
         gestor.verificarYGenerarAlertas();
-
-        ListView<String> listaAlertas = new ListView<>();
-        if (gestor.hayAlertas()) {
-            while (gestor.hayAlertas()) {
-                listaAlertas.getItems().add(gestor.atenderSiguienteAlerta());
-            }
-        } else {
-            listaAlertas.getItems().add("✅ No hay alertas de mantenimiento pendientes.");
+        while (gestor.hayAlertas()) {
+            listaAlertas.getItems().add(gestor.atenderSiguienteAlerta());
         }
 
-        panel.getChildren().addAll(titulo, listaAlertas);
+        // Alertas climáticas
+        model.gestores.GestorReportes reportes =
+                new model.gestores.GestorReportes(parque);
+        ListaEnlazada<Atraccion> cerradasClima = reportes.getCierresPorClima();
+        for (int i = 0; i < cerradasClima.tamaño(); i++) {
+            Atraccion a = cerradasClima.obtener(i);
+            listaAlertas.getItems().add("🌧 CIERRE CLIMÁTICO | "
+                    + a.getNombre() + " | " + a.getMotivoCierre());
+        }
+
+        if (listaAlertas.getItems().isEmpty()) {
+            listaAlertas.getItems().add("✅ No hay alertas pendientes.");
+        }
+
+        Button btnDesactivar = new Button("☀ Desactivar Alerta Climática");
+        btnDesactivar.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnDesactivar.setOnAction(e -> {
+            parque.desactivarAlertaClimatica();
+            mostrarAlertas();
+        });
+
+        panel.getChildren().addAll(titulo, listaAlertas, btnDesactivar);
         panelCentral.getChildren().add(panel);
     }
 
@@ -300,20 +330,24 @@ public class AdminController {
 
         Label lblAforo = new Label("👥 Visitantes actuales: "
                 + parque.getVisitantesActuales() + " / " + parque.getCapacidadMaxima());
-        Label lblZonas = new Label("🗺 Total zonas: " + parque.getZonas().tamaño());
-        Label lblAtracciones = new Label("🎢 Total atracciones: " + parque.getMapa().tamaño());
+        Label lblZonas = new Label("🗺 Total zonas: "
+                + parque.getZonas().tamaño());
+        Label lblAtracciones = new Label("🎢 Total atracciones: "
+                + parque.getMapa().tamaño());
         Label lblIngresos = new Label("💰 Ingresos del día: $"
                 + String.format("%.0f", reportes.calcularIngresosDiarios()));
         Label lblMantenimiento = new Label("⚠ Atracciones en mantenimiento: "
                 + reportes.getAtraccionesEnMantenimiento().tamaño());
+        Label lblCierresClima = new Label("🌧 Cierres por clima: "
+                + reportes.getCierresPorClima().tamaño());
 
         for (Label lbl : new Label[]{lblAforo, lblZonas, lblAtracciones,
-                lblIngresos, lblMantenimiento}) {
+                lblIngresos, lblMantenimiento, lblCierresClima}) {
             lbl.setStyle("-fx-font-size: 13; -fx-padding: 5;");
         }
 
         panel.getChildren().addAll(titulo, lblAforo, lblZonas,
-                lblAtracciones, lblIngresos, lblMantenimiento);
+                lblAtracciones, lblIngresos, lblMantenimiento, lblCierresClima);
         panelCentral.getChildren().add(panel);
     }
 
@@ -343,24 +377,90 @@ public class AdminController {
         lblDistancia.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E75B6;");
 
         Pane panelGrafo = new Pane();
-        panelGrafo.setPrefSize(1000, 550);
+        panelGrafo.setPrefSize(1000, 520);
         panelGrafo.setStyle("-fx-background-color: #F8FAFF; -fx-border-color: #D0D7E3; "
                 + "-fx-border-radius: 10; -fx-background-radius: 10;");
 
+        // Coordenadas en círculo
         Map<Integer, double[]> coords = new HashMap<>();
         int total = atracciones.tamaño();
-        double cx = 500, cy = 270, radio = 210;
+        double cx = 500, cy = 260, radio = 210;
         for (int i = 0; i < total; i++) {
             double angulo = 2 * Math.PI * i / total - Math.PI / 2;
             coords.put(atracciones.obtener(i).getId(),
-                    new double[]{cx + radio * Math.cos(angulo), cy + radio * Math.sin(angulo)});
+                    new double[]{cx + radio * Math.cos(angulo),
+                            cy + radio * Math.sin(angulo)});
         }
 
-        // Aristas
+        // Dibujo inicial
+        dibujarAristas(panelGrafo, coords, atracciones);
+        dibujarNodos(panelGrafo, coords, atracciones);
+
+        Button btnRuta = new Button("📍 Calcular Ruta");
+        btnRuta.setStyle("-fx-background-color: #2E75B6; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnRuta.setOnAction(e -> {
+            String nombreOrigen  = cbOrigen.getValue();
+            String nombreDestino = cbDestino.getValue();
+            if (nombreOrigen == null || nombreDestino == null) return;
+
+            Atraccion origen  = parque.buscarAtraccion(nombreOrigen);
+            Atraccion destino = parque.buscarAtraccion(nombreDestino);
+            if (origen == null || destino == null) return;
+
+            // Limpiar y redibujar antes de pintar nueva ruta
+            panelGrafo.getChildren().clear();
+            dibujarAristas(panelGrafo, coords, atracciones);
+            dibujarNodos(panelGrafo, coords, atracciones);
+
+            ListaEnlazada<Atraccion> ruta =
+                    parque.getMapa().dijkstra(origen.getId(), destino.getId());
+
+            for (int i = 0; i < ruta.tamaño() - 1; i++) {
+                double[] posA = coords.get(ruta.obtener(i).getId());
+                double[] posB = coords.get(ruta.obtener(i + 1).getId());
+                if (posA == null || posB == null) continue;
+                Line rutaLinea = new Line(posA[0], posA[1], posB[0], posB[1]);
+                rutaLinea.setStroke(javafx.scene.paint.Color.web("#2196F3"));
+                rutaLinea.setStrokeWidth(5);
+                rutaLinea.setEffect(new javafx.scene.effect.DropShadow(6,
+                        javafx.scene.paint.Color.web("#1565C0")));
+                panelGrafo.getChildren().add(rutaLinea);
+            }
+
+            double distancia = 0;
+            for (int i = 0; i < ruta.tamaño() - 1; i++) {
+                distancia += parque.getMapa().getPeso(
+                        ruta.obtener(i).getId(), ruta.obtener(i + 1).getId());
+            }
+            lblDistancia.setText("📍 Ruta: " + ruta.tamaño()
+                    + " atracciones | Distancia: " + (int) distancia + " m");
+        });
+
+        HBox leyenda = new HBox(20);
+        leyenda.setPadding(new Insets(8, 0, 0, 0));
+        leyenda.getChildren().addAll(
+                crearItemLeyenda("#4CAF50", "Activa"),
+                crearItemLeyenda("#FFC107", "Mantenimiento"),
+                crearItemLeyenda("#F44336", "Cerrada")
+        );
+
+        HBox controles = new HBox(10, cbOrigen, cbDestino, btnRuta, lblDistancia);
+        controles.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        panel.getChildren().addAll(titulo, controles, leyenda, panelGrafo);
+        panelCentral.getChildren().add(panel);
+    }
+
+    // ── Métodos privados ──────────────────────────────────────────
+    private void dibujarAristas(Pane panel, Map<Integer, double[]> coords,
+                                ListaEnlazada<Atraccion> atracciones) {
+        int total = atracciones.tamaño();
         for (int i = 0; i < total; i++) {
             Atraccion origen = atracciones.obtener(i);
             double[] posO = coords.get(origen.getId());
-            ListaEnlazada<Integer> vecinos = parque.getMapa().getVecinos(origen.getId());
+            ListaEnlazada<Integer> vecinos =
+                    parque.getMapa().getVecinos(origen.getId());
             for (int j = 0; j < vecinos.tamaño(); j++) {
                 int idDest = vecinos.obtener(j);
                 if (idDest <= origen.getId()) continue;
@@ -375,11 +475,14 @@ public class AdminController {
                 javafx.scene.text.Text lblPeso = new javafx.scene.text.Text(
                         midX - 10, midY - 5, (int) peso + "m");
                 lblPeso.setStyle("-fx-font-size: 9;");
-                panelGrafo.getChildren().addAll(linea, lblPeso);
+                panel.getChildren().addAll(linea, lblPeso);
             }
         }
+    }
 
-        // Nodos
+    private void dibujarNodos(Pane panel, Map<Integer, double[]> coords,
+                              ListaEnlazada<Atraccion> atracciones) {
+        int total = atracciones.tamaño();
         for (int i = 0; i < total; i++) {
             Atraccion a = atracciones.obtener(i);
             double[] pos = coords.get(a.getId());
@@ -407,61 +510,14 @@ public class AdminController {
             javafx.scene.control.Tooltip.install(circulo, tip);
             javafx.scene.text.Text etiqueta = new javafx.scene.text.Text(
                     pos[0] - 30, pos[1] + 38, a.getNombre());
-            etiqueta.setStyle("-fx-font-size: 9; -fx-font-weight: bold; -fx-fill: #1F3864;");
+            etiqueta.setStyle(
+                    "-fx-font-size: 9; -fx-font-weight: bold; -fx-fill: #1F3864;");
             etiqueta.setWrappingWidth(70);
             etiqueta.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-            panelGrafo.getChildren().addAll(circulo, etiqueta);
+            panel.getChildren().addAll(circulo, etiqueta);
         }
-
-        // Botón ruta
-        Button btnRuta = new Button("📍 Calcular Ruta");
-        btnRuta.setStyle("-fx-background-color: #2E75B6; -fx-text-fill: white; "
-                + "-fx-font-weight: bold; -fx-padding: 8 18; "
-                + "-fx-background-radius: 6; -fx-cursor: hand;");
-        btnRuta.setOnAction(e -> {
-            String nombreOrigen  = cbOrigen.getValue();
-            String nombreDestino = cbDestino.getValue();
-            if (nombreOrigen == null || nombreDestino == null) return;
-            Atraccion origen  = parque.buscarAtraccion(nombreOrigen);
-            Atraccion destino = parque.buscarAtraccion(nombreDestino);
-            if (origen == null || destino == null) return;
-            ListaEnlazada<Atraccion> ruta =
-                    parque.getMapa().dijkstra(origen.getId(), destino.getId());
-            for (int i = 0; i < ruta.tamaño() - 1; i++) {
-                double[] posA = coords.get(ruta.obtener(i).getId());
-                double[] posB = coords.get(ruta.obtener(i + 1).getId());
-                if (posA == null || posB == null) continue;
-                Line rutaLinea = new Line(posA[0], posA[1], posB[0], posB[1]);
-                rutaLinea.setStroke(javafx.scene.paint.Color.web("#2196F3"));
-                rutaLinea.setStrokeWidth(5);
-                rutaLinea.setEffect(new javafx.scene.effect.DropShadow(6,
-                        javafx.scene.paint.Color.web("#1565C0")));
-                panelGrafo.getChildren().add(rutaLinea);
-            }
-            double distancia = 0;
-            for (int i = 0; i < ruta.tamaño() - 1; i++) {
-                distancia += parque.getMapa().getPeso(
-                        ruta.obtener(i).getId(), ruta.obtener(i + 1).getId());
-            }
-            lblDistancia.setText("📍 Ruta: " + ruta.tamaño()
-                    + " atracciones | Distancia: " + (int) distancia + " m");
-        });
-
-        HBox leyenda = new HBox(20);
-        leyenda.setPadding(new Insets(8, 0, 0, 0));
-        leyenda.getChildren().addAll(
-                crearItemLeyenda("#4CAF50", "Activa"),
-                crearItemLeyenda("#FFC107", "Mantenimiento"),
-                crearItemLeyenda("#F44336", "Cerrada")
-        );
-
-        HBox controles = new HBox(10, cbOrigen, cbDestino, btnRuta, lblDistancia);
-        controles.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        panel.getChildren().addAll(titulo, controles, leyenda, panelGrafo);
-        panelCentral.getChildren().add(panel);
     }
 
-    // ── Métodos privados utilitarios ──────────────────────────────
     private javafx.scene.paint.Color getColorEstado(Atraccion a) {
         return switch (a.getEstado()) {
             case ACTIVA        -> javafx.scene.paint.Color.web("#4CAF50");
