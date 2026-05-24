@@ -489,20 +489,35 @@ public class AdminController {
                 if (idDest <= origen.getId()) continue;
                 double[] posD = coords.get(idDest);
                 if (posD == null) continue;
+
                 Line linea = new Line(posO[0], posO[1], posD[0], posD[1]);
                 linea.setStroke(javafx.scene.paint.Color.web("#B0BEC5"));
                 linea.setStrokeWidth(2);
+
                 double midX = (posO[0] + posD[0]) / 2;
                 double midY = (posO[1] + posD[1]) / 2;
                 double peso = parque.getMapa().getPeso(origen.getId(), idDest);
+
                 javafx.scene.text.Text lblPeso = new javafx.scene.text.Text(
                         midX - 10, midY - 5, (int) peso + "m");
-                lblPeso.setStyle("-fx-font-size: 9;");
-                panel.getChildren().addAll(linea, lblPeso);
+                lblPeso.setStyle("-fx-font-size: 9; -fx-font-weight: bold;");
+                lblPeso.setFill(javafx.scene.paint.Color.web("#455A64"));
+
+                javafx.scene.shape.Rectangle fondo =
+                        new javafx.scene.shape.Rectangle();
+                fondo.setX(midX - 14);
+                fondo.setY(midY - 16);
+                fondo.setWidth(lblPeso.getText().length() * 6 + 4);
+                fondo.setHeight(14);
+                fondo.setFill(javafx.scene.paint.Color.WHITE);
+                fondo.setArcWidth(4);
+                fondo.setArcHeight(4);
+                fondo.setOpacity(0.85);
+
+                panel.getChildren().addAll(linea, fondo, lblPeso);
             }
         }
     }
-
     private void dibujarNodos(Pane panel, Map<Integer, double[]> coords,
                               ListaEnlazada<Atraccion> atracciones) {
         int total = atracciones.tamaño();
