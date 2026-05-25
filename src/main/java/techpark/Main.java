@@ -4,13 +4,17 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import model.Operador;
 import model.Parque;
+import model.Visitante;
 import model.persistencia.DataLoader;
 import java.nio.file.Path;
 
 public class Main extends Application {
 
     public static Parque parque;
+    public static Visitante visitanteActivo;
+    public static Operador operadorActivo;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -23,20 +27,16 @@ public class Main extends Application {
 
         loader.cargarEscenario(rutaJson);
 
+        // Arrancar en pantalla de Login
         FXMLLoader fxmlLoader = new FXMLLoader(
-                getClass().getResource("/ui/admin/AdminView.fxml")
+                getClass().getResource("/ui/login/LoginView.fxml")
         );
-        Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("TechPark");
+        Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
+        stage.setTitle("TechPark UQ");
         stage.setScene(scene);
-
-        // Guardar al cerrar la ventana
         stage.setOnCloseRequest(e -> loader.guardarEstado(rutaJson));
-
         stage.show();
     }
-
-
 
     public static void main(String[] args) {
         launch();

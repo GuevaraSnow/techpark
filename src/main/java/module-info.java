@@ -6,4 +6,5 @@ module techpark {
     exports techpark;  // Exporta el paquete que contiene Main
 
     opens ui.admin to javafx.fxml;
+    opens ui.login to javafx.fxml;
 }
