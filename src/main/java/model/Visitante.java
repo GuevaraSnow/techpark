@@ -38,8 +38,9 @@ public class Visitante extends Persona {
         historial.agregar(atraccion);
     }
 
-    public void agregarFavorito(Atraccion atraccion) {
+    public boolean agregarFavorito(Atraccion atraccion) {
         favoritos.agregar(atraccion);
+        return false;
     }
 
     public void eliminarFavorito(Atraccion atraccion) {
