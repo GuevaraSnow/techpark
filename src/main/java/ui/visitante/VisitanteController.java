@@ -106,3 +106,151 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Atracciones ───────────────────────────────────────────────
+    @FXML
+    void mostrarAtracciones() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("🎢 Atracciones Disponibles");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        // Filtro por zona
+        ComboBox<String> cbZona = new ComboBox<>();
+        cbZona.getItems().add("Todas las zonas");
+        for (int i = 0; i < parque.getZonas().tamaño(); i++) {
+            cbZona.getItems().add(parque.getZonas().obtener(i).getNombre());
+        }
+        cbZona.setValue("Todas las zonas");
+
+        TableView<String[]> tabla = new TableView<>();
+        TableColumn<String[], String> colNombre   = new TableColumn<>("Atracción");
+        TableColumn<String[], String> colZona     = new TableColumn<>("Zona");
+        TableColumn<String[], String> colEstado   = new TableColumn<>("Estado");
+        TableColumn<String[], String> colEspera   = new TableColumn<>("Espera");
+        TableColumn<String[], String> colAltMin   = new TableColumn<>("Alt. mín.");
+        TableColumn<String[], String> colEdadMin  = new TableColumn<>("Edad mín.");
+        TableColumn<String[], String> colCosto    = new TableColumn<>("Costo extra");
+
+        colNombre.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[0]));
+        colZona.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[1]));
+        colEstado.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[2]));
+        colEspera.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[3]));
+        colAltMin.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[4]));
+        colEdadMin.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[5]));
+        colCosto.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[6]));
+
+        // Colorear estado
+        colEstado.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setStyle(""); return; }
+                setText(item);
+                switch (item) {
+                    case "ACTIVA"        -> setStyle("-fx-text-fill: #27AE60; -fx-font-weight: bold;");
+                    case "MANTENIMIENTO" -> setStyle("-fx-text-fill: #F39C12; -fx-font-weight: bold;");
+                    case "CERRADA"       -> setStyle("-fx-text-fill: #C0392B; -fx-font-weight: bold;");
+                }
+            }
+        });
+
+        tabla.getColumns().addAll(colNombre, colZona, colEstado,
+                colEspera, colAltMin, colEdadMin, colCosto);
+        tabla.setPrefHeight(320);
+
+        // Poblar tabla
+        poblarTablaAtracciones(tabla, "Todas las zonas");
+
+        // Filtrar al cambiar zona
+        cbZona.setOnAction(e ->
+                poblarTablaAtracciones(tabla, cbZona.getValue()));
+
+        // Botones de acción
+        Button btnFavorito = new Button("❤ Agregar a Favoritos");
+        btnFavorito.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnFavorito.setOnAction(e -> {
+            String[] fila = tabla.getSelectionModel().getSelectedItem();
+            if (fila == null) { alerta("Aviso", "Selecciona una atracción."); return; }
+            Atraccion a = parque.buscarAtraccion(fila[0]);
+            if (a != null) {
+                boolean agregado = visitante.agregarFavorito(a);
+                alerta("Favoritos", agregado ?
+                        "❤ " + a.getNombre() + " agregada a favoritos." :
+                        "Ya está en tus favoritos.");
+            }
+        });
+
+        Button btnCola = new Button("🎫 Unirme a la Cola");
+        btnCola.setStyle("-fx-background-color: #1F3864; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnCola.setOnAction(e -> {
+            String[] fila = tabla.getSelectionModel().getSelectedItem();
+            if (fila == null) { alerta("Aviso", "Selecciona una atracción."); return; }
+            Atraccion a = parque.buscarAtraccion(fila[0]);
+            if (a == null) return;
+
+            ControlAcceso.ResultadoValidacion resultado =
+                    controlAcceso.validarRestricciones(visitante, a);
+            if (!resultado.aprobado) {
+                alerta("Acceso denegado", resultado.mensaje);
+                return;
+            }
+
+            if (a.getEstado() != EstadoAtraccion.ACTIVA) {
+                alerta("No disponible", "La atracción no está activa.");
+                return;
+            }
+
+            boolean encolado = gestorColas.encolarSeguro(visitante, a);
+            if (encolado) {
+                int pos = gestorColas.getPosicion(visitante, a);
+                alerta("Cola virtual",
+                        "✅ Te uniste a la cola de " + a.getNombre()
+                                + "\n📍 Tu posición: #" + pos);
+            } else {
+                alerta("Cola virtual", "Ya estás en la cola de esta atracción.");
+            }
+        });
+
+        HBox acciones = new HBox(10, btnFavorito, btnCola);
+        HBox filtro = new HBox(10,
+                new Label("Filtrar por zona:"), cbZona);
+        filtro.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        panel.getChildren().addAll(titulo, filtro, tabla, acciones);
+        panelCentral.getChildren().add(panel);
+    }
+
+    private void poblarTablaAtracciones(TableView<String[]> tabla, String filtroZona) {
+        tabla.getItems().clear();
+        for (int i = 0; i < parque.getZonas().tamaño(); i++) {
+            Zona z = parque.getZonas().obtener(i);
+            if (!filtroZona.equals("Todas las zonas")
+                    && !z.getNombre().equals(filtroZona)) continue;
+            for (int j = 0; j < z.getAtracciones().tamaño(); j++) {
+                Atraccion a = z.getAtracciones().obtener(j);
+                tabla.getItems().add(new String[]{
+                        a.getNombre(),
+                        z.getNombre(),
+                        a.getEstado().toString(),
+                        "~" + (int) a.getTiempoEspera() + " min",
+                        a.getAlturaMin() + " m",
+                        a.getEdadMin() + " años",
+                        a.getCostoExtra() > 0 ? "$" + (int) a.getCostoExtra() : "Gratis"
+                });
+            }
+        }
+    }
+
