@@ -342,4 +342,61 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Cola virtual ──────────────────────────────────────────────
+    @FXML
+    void mostrarCola() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("🎫 Mi Cola Virtual");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        VBox contenido = new VBox(10);
+
+        ListaEnlazada<Atraccion> todasAtracciones = new ListaEnlazada<>();
+        for (int i = 0; i < parque.getZonas().tamaño(); i++) {
+            Zona z = parque.getZonas().obtener(i);
+            for (int j = 0; j < z.getAtracciones().tamaño(); j++) {
+                todasAtracciones.agregar(z.getAtracciones().obtener(j));
+            }
+        }
+
+        boolean enAlgunaCola = false;
+        for (int i = 0; i < todasAtracciones.tamaño(); i++) {
+            Atraccion a = todasAtracciones.obtener(i);
+            int pos = gestorColas.getPosicion(visitante, a);
+            if (pos > 0) {
+                enAlgunaCola = true;
+                HBox fila = new HBox(12);
+                fila.setStyle("-fx-background-color: white; -fx-padding: 12 16; "
+                        + "-fx-background-radius: 8; -fx-border-color: #D0D7E3; "
+                        + "-fx-border-radius: 8;");
+                fila.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                Label lblNombre = new Label("🎢 " + a.getNombre());
+                lblNombre.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
+
+                Label lblPos = new Label("Posición: #" + pos);
+                lblPos.setStyle("-fx-text-fill: #2E75B6; -fx-font-weight: bold;");
+
+                Label lblEspera = new Label("Espera: ~"
+                        + (pos * (int)(a.getTiempoEspera() + 5)) + " min");
+                lblEspera.setStyle("-fx-text-fill: #555;");
+
+                fila.getChildren().addAll(lblNombre, lblPos, lblEspera);
+                contenido.getChildren().add(fila);
+            }
+        }
+
+        if (!enAlgunaCola) {
+            Label lblVacio = new Label("No estás en ninguna cola virtual.");
+            lblVacio.setStyle("-fx-font-size: 13; -fx-text-fill: #888;");
+            contenido.getChildren().add(lblVacio);
+        }
+
+        panel.getChildren().addAll(titulo, contenido);
+        panelCentral.getChildren().add(panel);
+    }
+
 
