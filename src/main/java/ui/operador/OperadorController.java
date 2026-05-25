@@ -215,3 +215,131 @@ public class OperadorController {
         panel.getChildren().addAll(titulo, filtro, listaCola, lblInfo, btnProcesar);
         panelCentral.getChildren().add(panel);
     }
+
+    // ── Estado y revisión ─────────────────────────────────────────
+    @FXML
+    void mostrarEstado() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("⚙ Estado y Revisión Técnica");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+
+        if (zonaAsignada == null) {
+            panel.getChildren().addAll(titulo,
+                    new Label("No tienes zona asignada."));
+            panelCentral.getChildren().add(panel);
+            return;
+        }
+
+        ComboBox<String> cbAtraccion = new ComboBox<>();
+        for (int i = 0; i < zonaAsignada.getAtracciones().tamaño(); i++) {
+            cbAtraccion.getItems().add(
+                    zonaAsignada.getAtracciones().obtener(i).getNombre());
+        }
+        cbAtraccion.setPromptText("Seleccionar atracción");
+
+        Label lblEstadoActual = new Label("Estado: —");
+        lblEstadoActual.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
+
+        Label lblMotivo = new Label("");
+        lblMotivo.setStyle("-fx-font-size: 12; -fx-text-fill: #C0392B;");
+
+        cbAtraccion.setOnAction(e -> {
+            String nombre = cbAtraccion.getValue();
+            if (nombre == null) return;
+            Atraccion a = parque.buscarAtraccion(nombre);
+            if (a == null) return;
+            lblEstadoActual.setText("Estado: " + a.getEstado()
+                    + "  |  Visitantes acumulados: " + a.getContadorVisitantes());
+            lblMotivo.setText(a.getMotivoCierre().isEmpty() ? "" :
+                    "Motivo: " + a.getMotivoCierre());
+        });
+
+        // Cambiar estado
+        ComboBox<String> cbNuevoEstado = new ComboBox<>();
+        cbNuevoEstado.getItems().addAll("ACTIVA", "CERRADA");
+        cbNuevoEstado.setPromptText("Nuevo estado");
+
+        TextField txtMotivo = new TextField();
+        txtMotivo.setPromptText("Motivo (requerido si es CERRADA)");
+
+        Button btnCambiar = new Button("✏ Cambiar Estado");
+        btnCambiar.setStyle("-fx-background-color: #F39C12; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnCambiar.setOnAction(e -> {
+            String nombre = cbAtraccion.getValue();
+            String nuevoEstado = cbNuevoEstado.getValue();
+            if (nombre == null || nuevoEstado == null) return;
+            Atraccion a = parque.buscarAtraccion(nombre);
+            if (a == null) return;
+
+            if (nuevoEstado.equals("CERRADA")) {
+                String motivo = txtMotivo.getText().trim();
+                if (motivo.isEmpty()) {
+                    alerta("Campo requerido", "Ingresa el motivo del cierre.");
+                    return;
+                }
+                a.setEstado(EstadoAtraccion.CERRADA);
+                a.setMotivoCierre(motivo);
+            } else {
+                a.setEstado(EstadoAtraccion.ACTIVA);
+                a.setMotivoCierre("");
+            }
+            cbAtraccion.getOnAction().handle(null);
+            alerta("Estado actualizado",
+                    "✅ Estado de " + nombre + " cambiado a " + nuevoEstado);
+        });
+
+        // Registrar revisión técnica
+        Button btnRevision = new Button("🔧 Registrar Revisión Técnica");
+        btnRevision.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnRevision.setOnAction(e -> {
+            String nombre = cbAtraccion.getValue();
+            if (nombre == null) return;
+            Atraccion a = parque.buscarAtraccion(nombre);
+            if (a == null) return;
+
+            if (a.getEstado() != EstadoAtraccion.MANTENIMIENTO) {
+                alerta("No aplica",
+                        "Solo puedes registrar revisión en atracciones en MANTENIMIENTO.");
+                return;
+            }
+
+            a.registrarRevisionTecnica();
+            parque.registrarNotificacion("🔧 Revisión técnica registrada en "
+                    + nombre + " por operador " + operador.getNombre());
+            cbAtraccion.getOnAction().handle(null);
+            alerta("Revisión registrada",
+                    "✅ " + nombre + " volvió a estado ACTIVA.\n"
+                            + "Contador de visitantes reiniciado.");
+        });
+
+        Label lblCambioEstado = new Label("✏ Cambiar estado de atracción");
+        lblCambioEstado.setStyle(
+                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+
+        Label lblRevision = new Label("🔧 Revisión técnica");
+        lblRevision.setStyle(
+                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+        grid.addRow(0, cbNuevoEstado, txtMotivo, btnCambiar);
+
+        panel.getChildren().addAll(
+                titulo,
+                new Label("Seleccionar atracción:"), cbAtraccion,
+                lblEstadoActual, lblMotivo,
+                new Separator(),
+                lblCambioEstado, grid,
+                new Separator(),
+                lblRevision, btnRevision
+        );
+        panelCentral.getChildren().add(panel);
+    }
