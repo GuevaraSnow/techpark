@@ -254,3 +254,43 @@ public class VisitanteController {
         }
     }
 
+    // ── Favoritos ─────────────────────────────────────────────────
+    @FXML
+    void mostrarFavoritos() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("❤ Mis Favoritos");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        ListView<String> lista = new ListView<>();
+
+        ListaEnlazada<Atraccion> favs = visitante.getFavoritos().listar();
+        if (favs.estaVacia()) {
+            lista.getItems().add("No tienes atracciones favoritas aún.");
+        } else {
+            for (int i = 0; i < favs.tamaño(); i++) {
+                Atraccion a = favs.obtener(i);
+                lista.getItems().add("❤ " + a.getNombre()
+                        + "  |  " + a.getEstado()
+                        + "  |  " + a.getTipo());
+            }
+        }
+
+        Button btnEliminar = new Button("🗑 Eliminar de Favoritos");
+        btnEliminar.setStyle("-fx-background-color: #C0392B; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnEliminar.setOnAction(e -> {
+            int idx = lista.getSelectionModel().getSelectedIndex();
+            if (idx < 0 || favs.estaVacia()) return;
+            visitante.eliminarFavorito(favs.obtener(idx));
+            mostrarFavoritos();
+        });
+
+        panel.getChildren().addAll(titulo, lista, btnEliminar);
+        panelCentral.getChildren().add(panel);
+    }
+
+
