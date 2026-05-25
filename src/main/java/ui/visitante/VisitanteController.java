@@ -490,4 +490,110 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Cerrar sesión ─────────────────────────────────────────────
+    @FXML
+    void cerrarSesion() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/ui/login/LoginView.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 720);
+            Stage stage = (Stage) panelCentral.getScene().getWindow();
+            stage.setTitle("TechPark UQ");
+            stage.setScene(scene);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ── Métodos privados ──────────────────────────────────────────
+    private void dibujarAristasVisitante(Pane panel, Map<Integer, double[]> coords,
+                                         ListaEnlazada<Atraccion> atracciones) {
+        for (int i = 0; i < atracciones.tamaño(); i++) {
+            Atraccion origen = atracciones.obtener(i);
+            double[] posO = coords.get(origen.getId());
+            ListaEnlazada<Integer> vecinos =
+                    parque.getMapa().getVecinos(origen.getId());
+            for (int j = 0; j < vecinos.tamaño(); j++) {
+                int idDest = vecinos.obtener(j);
+                if (idDest <= origen.getId()) continue;
+                double[] posD = coords.get(idDest);
+                if (posD == null) continue;
+                Line linea = new Line(posO[0], posO[1], posD[0], posD[1]);
+                linea.setStroke(javafx.scene.paint.Color.web("#B0BEC5"));
+                linea.setStrokeWidth(1.5);
+                double midX = (posO[0] + posD[0]) / 2;
+                double midY = (posO[1] + posD[1]) / 2;
+                double peso = parque.getMapa().getPeso(origen.getId(), idDest);
+
+                javafx.scene.text.Text lblPeso =
+                        new javafx.scene.text.Text(midX - 10, midY - 5, (int) peso + "m");
+                lblPeso.setStyle("-fx-font-size: 9; -fx-font-weight: bold;");
+                lblPeso.setFill(javafx.scene.paint.Color.web("#455A64"));
+
+                javafx.scene.shape.Rectangle fondo =
+                        new javafx.scene.shape.Rectangle();
+                fondo.setX(midX - 14);
+                fondo.setY(midY - 16);
+                fondo.setWidth(lblPeso.getText().length() * 6 + 4);
+                fondo.setHeight(14);
+                fondo.setFill(javafx.scene.paint.Color.WHITE);
+                fondo.setArcWidth(4);
+                fondo.setArcHeight(4);
+                fondo.setOpacity(0.85);
+
+                panel.getChildren().addAll(linea, fondo, lblPeso);
+            }
+        }
+    }
+
+    private void dibujarNodosVisitante(Pane panel, Map<Integer, double[]> coords,
+                                       ListaEnlazada<Atraccion> atracciones) {
+        for (int i = 0; i < atracciones.tamaño(); i++) {
+            Atraccion a = atracciones.obtener(i);
+            double[] pos = coords.get(a.getId());
+            javafx.scene.shape.Circle circulo =
+                    new javafx.scene.shape.Circle(pos[0], pos[1], 20);
+            circulo.setFill(colorEstado(a));
+            circulo.setStroke(javafx.scene.paint.Color.WHITE);
+            circulo.setStrokeWidth(2.5);
+            circulo.setEffect(new javafx.scene.effect.DropShadow(6,
+                    javafx.scene.paint.Color.rgb(0, 0, 0, 0.15)));
+            circulo.setOnMouseEntered(e -> circulo.setRadius(24));
+            circulo.setOnMouseExited(e  -> circulo.setRadius(20));
+            javafx.scene.control.Tooltip.install(circulo,
+                    new javafx.scene.control.Tooltip(
+                            a.getNombre() + "\n" + a.getEstado()));
+            javafx.scene.text.Text etiqueta = new javafx.scene.text.Text(
+                    pos[0] - 28, pos[1] + 34, a.getNombre());
+            etiqueta.setStyle(
+                    "-fx-font-size: 9; -fx-font-weight: bold; -fx-fill: #1F3864;");
+            etiqueta.setWrappingWidth(60);
+            etiqueta.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+            panel.getChildren().addAll(circulo, etiqueta);
+        }
+    }
+
+    private javafx.scene.paint.Color colorEstado(Atraccion a) {
+        return switch (a.getEstado()) {
+            case ACTIVA        -> javafx.scene.paint.Color.web("#4CAF50");
+            case MANTENIMIENTO -> javafx.scene.paint.Color.web("#FFC107");
+            case CERRADA       -> javafx.scene.paint.Color.web("#F44336");
+        };
+    }
+
+    private Label info(String etiqueta, String valor) {
+        Label lbl = new Label(etiqueta + "  " + valor);
+        lbl.setStyle("-fx-font-size: 13; -fx-text-fill: #333; -fx-padding: 2 0;");
+        return lbl;
+    }
+
+    private void alerta(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
+    }
+}
+
 
