@@ -8,4 +8,5 @@ module techpark {
     opens ui.admin to javafx.fxml;
     opens ui.login to javafx.fxml;
     opens ui.visitante to javafx.fxml;
+    opens ui.operador to javafx.fxml;
 }
