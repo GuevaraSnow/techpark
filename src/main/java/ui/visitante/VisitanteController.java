@@ -293,4 +293,53 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Historial ─────────────────────────────────────────────────
+    @FXML
+    void mostrarHistorial() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("📋 Historial de Visitas");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        TableView<String[]> tabla = new TableView<>();
+        TableColumn<String[], String> colNum    = new TableColumn<>("#");
+        TableColumn<String[], String> colNombre = new TableColumn<>("Atracción");
+        TableColumn<String[], String> colTipo   = new TableColumn<>("Tipo");
+        TableColumn<String[], String> colEstado = new TableColumn<>("Estado actual");
+
+        colNum.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[0]));
+        colNombre.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[1]));
+        colTipo.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[2]));
+        colEstado.setCellValueFactory(d ->
+                new javafx.beans.property.SimpleStringProperty(d.getValue()[3]));
+
+        tabla.getColumns().addAll(colNum, colNombre, colTipo, colEstado);
+
+        ListaEnlazada<Atraccion> historial = visitante.getHistorial();
+        if (historial.estaVacia()) {
+            tabla.setPlaceholder(new Label("No has visitado ninguna atracción aún."));
+        } else {
+            for (int i = 0; i < historial.tamaño(); i++) {
+                Atraccion a = historial.obtener(i);
+                tabla.getItems().add(new String[]{
+                        String.valueOf(i + 1),
+                        a.getNombre(),
+                        a.getTipo(),
+                        a.getEstado().toString()
+                });
+            }
+        }
+
+        Label lblTotal = new Label("Total de visitas: " + historial.tamaño());
+        lblTotal.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-padding: 4 0 0 0;");
+
+        panel.getChildren().addAll(titulo, tabla, lblTotal);
+        panelCentral.getChildren().add(panel);
+    }
+
 
