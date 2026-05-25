@@ -126,3 +126,92 @@ public class OperadorController {
         panel.getChildren().addAll(titulo, lblZona, tabla);
         panelCentral.getChildren().add(panel);
     }
+
+    // ── Cola de visitantes ────────────────────────────────────────
+    @FXML
+    void mostrarCola() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(12);
+        panel.setPadding(new Insets(30));
+
+        Label titulo = new Label("👥 Cola de Visitantes");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+
+        if (zonaAsignada == null || zonaAsignada.getAtracciones().estaVacia()) {
+            panel.getChildren().addAll(titulo,
+                    new Label("No hay atracciones en tu zona."));
+            panelCentral.getChildren().add(panel);
+            return;
+        }
+
+        // Seleccionar atracción
+        ComboBox<String> cbAtraccion = new ComboBox<>();
+        for (int i = 0; i < zonaAsignada.getAtracciones().tamaño(); i++) {
+            cbAtraccion.getItems().add(
+                    zonaAsignada.getAtracciones().obtener(i).getNombre());
+        }
+        cbAtraccion.setPromptText("Seleccionar atracción");
+
+        ListView<String> listaCola = new ListView<>();
+        listaCola.setPrefHeight(280);
+
+        Label lblInfo = new Label("");
+        lblInfo.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+
+        cbAtraccion.setOnAction(e -> {
+            String nombre = cbAtraccion.getValue();
+            if (nombre == null) return;
+            Atraccion a = parque.buscarAtraccion(nombre);
+            if (a == null) return;
+            listaCola.getItems().clear();
+            int tam = gestorColas.tamañoCola(a);
+            if (tam == 0) {
+                listaCola.getItems().add("✅ Cola vacía");
+            } else {
+                listaCola.getItems().add("Total en cola: " + tam + " visitantes");
+                listaCola.getItems().add("👑 Siguiente: "
+                        + gestorColas.verSiguiente(a).getNombre()
+                        + " ("  + gestorColas.verSiguiente(a)
+                        .getTicket().getTipo() + ")");
+            }
+            lblInfo.setText("Capacidad del ciclo: "
+                    + a.getContadorActual() + " / " + a.getCapacidad());
+        });
+
+        // Botón procesar siguiente
+        Button btnProcesar = new Button("▶ Procesar Siguiente");
+        btnProcesar.setStyle("-fx-background-color: #4A235A; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnProcesar.setOnAction(e -> {
+            String nombre = cbAtraccion.getValue();
+            if (nombre == null) return;
+            Atraccion a = parque.buscarAtraccion(nombre);
+            if (a == null || gestorColas.colaVacia(a)) {
+                alerta("Cola vacía", "No hay visitantes en la cola.");
+                return;
+            }
+
+            Visitante siguiente = gestorColas.verSiguiente(a);
+            ControlAcceso.ResultadoValidacion resultado =
+                    controlAcceso.autorizarIngreso(siguiente, a);
+
+            if (resultado.aprobado) {
+                gestorColas.desencolarConNotificacion(a);
+                alerta("✅ Ingreso autorizado", resultado.mensaje);
+            } else {
+                gestorColas.desencolar(a); // sacar de cola aunque no pase
+                alerta("❌ Ingreso denegado", resultado.mensaje);
+            }
+
+            // Refrescar
+            cbAtraccion.getOnAction().handle(null);
+        });
+
+        HBox filtro = new HBox(10,
+                new Label("Atracción:"), cbAtraccion);
+        filtro.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        panel.getChildren().addAll(titulo, filtro, listaCola, lblInfo, btnProcesar);
+        panelCentral.getChildren().add(panel);
+    }
