@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cabd9219-5d34-4ed5-b1fd-9adaa99a3e5d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/resources/ui/visitante/VisitanteView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/ui/visitante/VisitanteView.fxml" afterDir="false" />
-    </list>
+    <list default="true" id="cabd9219-5d34-4ed5-b1fd-9adaa99a3e5d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -134,7 +132,7 @@
       <workItem from="1779588761272" duration="900000" />
       <workItem from="1779635112674" duration="2040000" />
       <workItem from="1779684443575" duration="3000" />
-      <workItem from="1779710843503" duration="300000" />
+      <workItem from="1779710843503" duration="599000" />
     </task>
     <servers />
   </component>
