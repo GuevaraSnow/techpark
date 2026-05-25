@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Parque;
 import model.Visitante;
@@ -18,12 +19,17 @@ import model.gestores.ControlAcceso;
 import model.gestores.GestorColas;
 import techpark.Main;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class VisitanteController {
 
     @FXML private StackPane panelCentral;
+    @FXML private Label lblNombreVisitante;
+    @FXML private Label lblInicial;
+    @FXML private javafx.scene.shape.Circle avatarCirculo;
+    @FXML private javafx.scene.image.ImageView avatarImagen;
 
     private Parque parque;
     private Visitante visitante;
@@ -34,19 +40,35 @@ public class VisitanteController {
     public void initialize() {
         this.parque        = Main.parque;
         this.visitante     = Main.visitanteActivo;
-        this.gestorColas   = Main.gestorColas; //
+        this.gestorColas   = Main.gestorColas;
         this.controlAcceso = new ControlAcceso();
-        mostrarPerfil();
 
-        // Registrar todas las atracciones en el gestor de colas
-        for (int i = 0; i < parque.getZonas().tamaño(); i++) {
-            Zona z = parque.getZonas().obtener(i);
-            for (int j = 0; j < z.getAtracciones().tamaño(); j++) {
-                gestorColas.registrarAtraccion(z.getAtracciones().obtener(j));
-            }
+        actualizarAvatarSidebar();
+        mostrarPerfil();
+    }
+
+    // ── Actualizar avatar del sidebar ─────────────────────────────
+    private void actualizarAvatarSidebar() {
+        if (visitante == null) return;
+        lblNombreVisitante.setText(visitante.getNombre());
+        lblInicial.setText(
+                String.valueOf(visitante.getNombre().charAt(0)).toUpperCase());
+
+        if (visitante.getFotoRuta() != null
+                && !visitante.getFotoRuta().isEmpty()) {
+            try {
+                javafx.scene.image.Image img =
+                        new javafx.scene.image.Image(
+                                "file:" + visitante.getFotoRuta());
+                avatarImagen.setImage(img);
+                // Recortar en círculo
+                javafx.scene.shape.Circle clip =
+                        new javafx.scene.shape.Circle(20, 20, 20);
+                avatarImagen.setClip(clip);
+                avatarCirculo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                lblInicial.setVisible(false);
+            } catch (Exception ignored) {}
         }
-
-        mostrarPerfil();
     }
 
     // ── Perfil ────────────────────────────────────────────────────
@@ -55,16 +77,16 @@ public class VisitanteController {
         panelCentral.getChildren().clear();
         VBox panel = new VBox(16);
         panel.setPadding(new Insets(30));
+        panel.setMaxWidth(520);
 
         Label titulo = new Label("👤 Mi Perfil");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
-        // Tarjeta de perfil
+        // Tarjeta de datos
         VBox tarjeta = new VBox(10);
         tarjeta.setStyle("-fx-background-color: white; -fx-background-radius: 12; "
                 + "-fx-border-color: #D0D7E3; -fx-border-radius: 12; "
-                + "-fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
-        tarjeta.setMaxWidth(500);
+                + "-fx-padding: 20; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.08),8,0,0,2);");
 
         Label lblNombre   = info("👤 Nombre:",    visitante.getNombre());
         Label lblDoc      = info("🪪 Documento:", visitante.getDocumento());
@@ -77,19 +99,18 @@ public class VisitanteController {
                 visitante.getTicket() != null ?
                         visitante.getTicket().getTipo().toString() : "Sin ticket");
 
-        tarjeta.getChildren().addAll(lblNombre, lblDoc, lblEdad,
-                lblEstatura, lblSaldo, lblTicket);
+        tarjeta.getChildren().addAll(
+                lblNombre, lblDoc, lblEdad, lblEstatura, lblSaldo, lblTicket);
 
         // Recargar saldo
         Label lblRecargar = new Label("💳 Recargar saldo");
-        lblRecargar.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
-
+        lblRecargar.setStyle(
+                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
         TextField txtMonto = new TextField();
         txtMonto.setPromptText("Monto a recargar ($)");
         txtMonto.setMaxWidth(200);
-
         Button btnRecargar = new Button("➕ Recargar");
-        btnRecargar.setStyle("-fx-background-color: #1F3864; -fx-text-fill: white; "
+        btnRecargar.setStyle("-fx-background-color: #1A4731; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
                 + "-fx-background-radius: 6; -fx-cursor: hand;");
         btnRecargar.setOnAction(e -> {
@@ -107,6 +128,124 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Editar perfil ─────────────────────────────────────────────
+    @FXML
+    void editarPerfil() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(16);
+        panel.setPadding(new Insets(30));
+        panel.setMaxWidth(500);
+
+        Label titulo = new Label("✏ Editar Perfil");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
+
+        // Avatar grande
+        StackPane avatarGrande = new StackPane();
+        javafx.scene.shape.Circle circulo = new javafx.scene.shape.Circle(45);
+        circulo.setFill(javafx.scene.paint.Color.web("#27AE60"));
+        circulo.setStroke(javafx.scene.paint.Color.web("#D0D7E3"));
+        circulo.setStrokeWidth(2);
+
+        Label inicialGrande = new Label(
+                String.valueOf(visitante.getNombre().charAt(0)).toUpperCase());
+        inicialGrande.setStyle(
+                "-fx-text-fill: white; -fx-font-size: 32; -fx-font-weight: bold;");
+
+        javafx.scene.image.ImageView imgView =
+                new javafx.scene.image.ImageView();
+        imgView.setFitWidth(90);
+        imgView.setFitHeight(90);
+        imgView.setPreserveRatio(false);
+
+        if (visitante.getFotoRuta() != null
+                && !visitante.getFotoRuta().isEmpty()) {
+            try {
+                javafx.scene.image.Image img =
+                        new javafx.scene.image.Image(
+                                "file:" + visitante.getFotoRuta());
+                imgView.setImage(img);
+                javafx.scene.shape.Circle clip =
+                        new javafx.scene.shape.Circle(45, 45, 45);
+                imgView.setClip(clip);
+                circulo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                inicialGrande.setVisible(false);
+            } catch (Exception ignored) {}
+        }
+
+        avatarGrande.getChildren().addAll(circulo, inicialGrande, imgView);
+
+        Button btnFoto = new Button("📷 Cambiar foto");
+        btnFoto.setStyle("-fx-background-color: #E8EEF5; -fx-text-fill: #1A4731; "
+                + "-fx-font-weight: bold; -fx-padding: 7 14; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnFoto.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Seleccionar foto de perfil");
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter(
+                            "Imágenes", "*.png", "*.jpg", "*.jpeg"));
+            File archivo = fc.showOpenDialog(
+                    panelCentral.getScene().getWindow());
+            if (archivo != null) {
+                visitante.setFotoRuta(archivo.getAbsolutePath());
+                try {
+                    javafx.scene.image.Image img =
+                            new javafx.scene.image.Image(
+                                    "file:" + visitante.getFotoRuta());
+                    imgView.setImage(img);
+                    javafx.scene.shape.Circle clip =
+                            new javafx.scene.shape.Circle(45, 45, 45);
+                    imgView.setClip(clip);
+                    circulo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                    inicialGrande.setVisible(false);
+                    actualizarAvatarSidebar();
+                } catch (Exception ignored) {}
+            }
+        });
+
+        VBox avatarBox = new VBox(8, avatarGrande, btnFoto);
+        avatarBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label lblNombreL = new Label("Nombre completo");
+        lblNombreL.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        TextField txtNombre = new TextField(visitante.getNombre());
+        txtNombre.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 6;");
+
+        Label lblDocL = new Label("Documento (no editable)");
+        lblDocL.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        TextField txtDoc = new TextField(visitante.getDocumento());
+        txtDoc.setEditable(false);
+        txtDoc.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 6; "
+                + "-fx-background-color: #F0F4F8;");
+
+        Button btnGuardar = new Button("💾 Guardar Cambios");
+        btnGuardar.setStyle("-fx-background-color: #1A4731; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 10 24; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnGuardar.setOnAction(e -> {
+            String nuevoNombre = txtNombre.getText().trim();
+            if (nuevoNombre.isEmpty()) {
+                alerta("Campo requerido", "El nombre no puede estar vacío.");
+                return;
+            }
+            visitante.setNombre(nuevoNombre);
+            actualizarAvatarSidebar();
+            parque.registrarNotificacion(
+                    "✏ Perfil de visitante actualizado: " + nuevoNombre);
+            alerta("Perfil actualizado", "✅ Cambios guardados correctamente.");
+        });
+
+        panel.getChildren().addAll(
+                titulo, avatarBox,
+                lblNombreL, txtNombre,
+                lblDocL, txtDoc,
+                btnGuardar
+        );
+        panelCentral.getChildren().add(panel);
+    }
+
     // ── Atracciones ───────────────────────────────────────────────
     @FXML
     void mostrarAtracciones() {
@@ -115,9 +254,8 @@ public class VisitanteController {
         panel.setPadding(new Insets(30));
 
         Label titulo = new Label("🎢 Atracciones Disponibles");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
-        // Filtro por zona
         ComboBox<String> cbZona = new ComboBox<>();
         cbZona.getItems().add("Todas las zonas");
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {
@@ -126,13 +264,13 @@ public class VisitanteController {
         cbZona.setValue("Todas las zonas");
 
         TableView<String[]> tabla = new TableView<>();
-        TableColumn<String[], String> colNombre   = new TableColumn<>("Atracción");
-        TableColumn<String[], String> colZona     = new TableColumn<>("Zona");
-        TableColumn<String[], String> colEstado   = new TableColumn<>("Estado");
-        TableColumn<String[], String> colEspera   = new TableColumn<>("Espera");
-        TableColumn<String[], String> colAltMin   = new TableColumn<>("Alt. mín.");
-        TableColumn<String[], String> colEdadMin  = new TableColumn<>("Edad mín.");
-        TableColumn<String[], String> colCosto    = new TableColumn<>("Costo extra");
+        TableColumn<String[], String> colNombre  = new TableColumn<>("Atracción");
+        TableColumn<String[], String> colZona    = new TableColumn<>("Zona");
+        TableColumn<String[], String> colEstado  = new TableColumn<>("Estado");
+        TableColumn<String[], String> colEspera  = new TableColumn<>("Espera");
+        TableColumn<String[], String> colAltMin  = new TableColumn<>("Alt. mín.");
+        TableColumn<String[], String> colEdadMin = new TableColumn<>("Edad mín.");
+        TableColumn<String[], String> colCosto   = new TableColumn<>("Costo extra");
 
         colNombre.setCellValueFactory(d ->
                 new javafx.beans.property.SimpleStringProperty(d.getValue()[0]));
@@ -149,7 +287,6 @@ public class VisitanteController {
         colCosto.setCellValueFactory(d ->
                 new javafx.beans.property.SimpleStringProperty(d.getValue()[6]));
 
-        // Colorear estado
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -164,18 +301,14 @@ public class VisitanteController {
             }
         });
 
-        tabla.getColumns().addAll(colNombre, colZona, colEstado,
-                colEspera, colAltMin, colEdadMin, colCosto);
+        tabla.getColumns().addAll(
+                colNombre, colZona, colEstado, colEspera,
+                colAltMin, colEdadMin, colCosto);
         tabla.setPrefHeight(320);
-
-        // Poblar tabla
         poblarTablaAtracciones(tabla, "Todas las zonas");
-
-        // Filtrar al cambiar zona
         cbZona.setOnAction(e ->
                 poblarTablaAtracciones(tabla, cbZona.getValue()));
 
-        // Botones de acción
         Button btnFavorito = new Button("❤ Agregar a Favoritos");
         btnFavorito.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
@@ -193,7 +326,7 @@ public class VisitanteController {
         });
 
         Button btnCola = new Button("🎫 Unirme a la Cola");
-        btnCola.setStyle("-fx-background-color: #1F3864; -fx-text-fill: white; "
+        btnCola.setStyle("-fx-background-color: #1A4731; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
                 + "-fx-background-radius: 6; -fx-cursor: hand;");
         btnCola.setOnAction(e -> {
@@ -208,12 +341,10 @@ public class VisitanteController {
                 alerta("Acceso denegado", resultado.mensaje);
                 return;
             }
-
             if (a.getEstado() != EstadoAtraccion.ACTIVA) {
                 alerta("No disponible", "La atracción no está activa.");
                 return;
             }
-
             boolean encolado = gestorColas.encolarSeguro(visitante, a);
             if (encolado) {
                 int pos = gestorColas.getPosicion(visitante, a);
@@ -226,15 +357,14 @@ public class VisitanteController {
         });
 
         HBox acciones = new HBox(10, btnFavorito, btnCola);
-        HBox filtro = new HBox(10,
-                new Label("Filtrar por zona:"), cbZona);
+        HBox filtro = new HBox(10, new Label("Filtrar por zona:"), cbZona);
         filtro.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
         panel.getChildren().addAll(titulo, filtro, tabla, acciones);
         panelCentral.getChildren().add(panel);
     }
 
-    private void poblarTablaAtracciones(TableView<String[]> tabla, String filtroZona) {
+    private void poblarTablaAtracciones(TableView<String[]> tabla,
+                                        String filtroZona) {
         tabla.getItems().clear();
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {
             Zona z = parque.getZonas().obtener(i);
@@ -243,13 +373,13 @@ public class VisitanteController {
             for (int j = 0; j < z.getAtracciones().tamaño(); j++) {
                 Atraccion a = z.getAtracciones().obtener(j);
                 tabla.getItems().add(new String[]{
-                        a.getNombre(),
-                        z.getNombre(),
+                        a.getNombre(), z.getNombre(),
                         a.getEstado().toString(),
                         "~" + (int) a.getTiempoEspera() + " min",
                         a.getAlturaMin() + " m",
                         a.getEdadMin() + " años",
-                        a.getCostoExtra() > 0 ? "$" + (int) a.getCostoExtra() : "Gratis"
+                        a.getCostoExtra() > 0 ?
+                                "$" + (int) a.getCostoExtra() : "Gratis"
                 });
             }
         }
@@ -263,10 +393,9 @@ public class VisitanteController {
         panel.setPadding(new Insets(30));
 
         Label titulo = new Label("❤ Mis Favoritos");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
         ListView<String> lista = new ListView<>();
-
         ListaEnlazada<Atraccion> favs = visitante.getFavoritos().listar();
         if (favs.estaVacia()) {
             lista.getItems().add("No tienes atracciones favoritas aún.");
@@ -274,8 +403,7 @@ public class VisitanteController {
             for (int i = 0; i < favs.tamaño(); i++) {
                 Atraccion a = favs.obtener(i);
                 lista.getItems().add("❤ " + a.getNombre()
-                        + "  |  " + a.getEstado()
-                        + "  |  " + a.getTipo());
+                        + "  |  " + a.getEstado() + "  |  " + a.getTipo());
             }
         }
 
@@ -302,7 +430,7 @@ public class VisitanteController {
         panel.setPadding(new Insets(30));
 
         Label titulo = new Label("📋 Historial de Visitas");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
         TableView<String[]> tabla = new TableView<>();
         TableColumn<String[], String> colNum    = new TableColumn<>("#");
@@ -323,22 +451,20 @@ public class VisitanteController {
 
         ListaEnlazada<Atraccion> historial = visitante.getHistorial();
         if (historial.estaVacia()) {
-            tabla.setPlaceholder(new Label("No has visitado ninguna atracción aún."));
+            tabla.setPlaceholder(
+                    new Label("No has visitado ninguna atracción aún."));
         } else {
             for (int i = 0; i < historial.tamaño(); i++) {
                 Atraccion a = historial.obtener(i);
                 tabla.getItems().add(new String[]{
-                        String.valueOf(i + 1),
-                        a.getNombre(),
-                        a.getTipo(),
-                        a.getEstado().toString()
+                        String.valueOf(i + 1), a.getNombre(),
+                        a.getTipo(), a.getEstado().toString()
                 });
             }
         }
 
         Label lblTotal = new Label("Total de visitas: " + historial.tamaño());
         lblTotal.setStyle("-fx-font-size: 12; -fx-text-fill: #555; -fx-padding: 4 0 0 0;");
-
         panel.getChildren().addAll(titulo, tabla, lblTotal);
         panelCentral.getChildren().add(panel);
     }
@@ -351,21 +477,20 @@ public class VisitanteController {
         panel.setPadding(new Insets(30));
 
         Label titulo = new Label("🎫 Mi Cola Virtual");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
         VBox contenido = new VBox(10);
-
-        ListaEnlazada<Atraccion> todasAtracciones = new ListaEnlazada<>();
+        ListaEnlazada<Atraccion> todas = new ListaEnlazada<>();
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {
             Zona z = parque.getZonas().obtener(i);
             for (int j = 0; j < z.getAtracciones().tamaño(); j++) {
-                todasAtracciones.agregar(z.getAtracciones().obtener(j));
+                todas.agregar(z.getAtracciones().obtener(j));
             }
         }
 
         boolean enAlgunaCola = false;
-        for (int i = 0; i < todasAtracciones.tamaño(); i++) {
-            Atraccion a = todasAtracciones.obtener(i);
+        for (int i = 0; i < todas.tamaño(); i++) {
+            Atraccion a = todas.obtener(i);
             int pos = gestorColas.getPosicion(visitante, a);
             if (pos > 0) {
                 enAlgunaCola = true;
@@ -374,17 +499,13 @@ public class VisitanteController {
                         + "-fx-background-radius: 8; -fx-border-color: #D0D7E3; "
                         + "-fx-border-radius: 8;");
                 fila.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
                 Label lblNombre = new Label("🎢 " + a.getNombre());
                 lblNombre.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
-
                 Label lblPos = new Label("Posición: #" + pos);
-                lblPos.setStyle("-fx-text-fill: #2E75B6; -fx-font-weight: bold;");
-
+                lblPos.setStyle("-fx-text-fill: #1A4731; -fx-font-weight: bold;");
                 Label lblEspera = new Label("Espera: ~"
                         + (pos * (int)(a.getTiempoEspera() + 5)) + " min");
                 lblEspera.setStyle("-fx-text-fill: #555;");
-
                 fila.getChildren().addAll(lblNombre, lblPos, lblEspera);
                 contenido.getChildren().add(fila);
             }
@@ -408,7 +529,7 @@ public class VisitanteController {
         panel.setPadding(new Insets(20));
 
         Label titulo = new Label("🗾 Ruta Sugerida");
-        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
         ComboBox<String> cbOrigen  = new ComboBox<>();
         ComboBox<String> cbDestino = new ComboBox<>();
@@ -423,7 +544,7 @@ public class VisitanteController {
         }
 
         Label lblResultado = new Label("");
-        lblResultado.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E75B6;");
+        lblResultado.setStyle("-fx-font-weight: bold; -fx-text-fill: #1A4731;");
 
         Pane panelGrafo = new Pane();
         panelGrafo.setPrefSize(950, 460);
@@ -452,7 +573,6 @@ public class VisitanteController {
             String nombreOrigen  = cbOrigen.getValue();
             String nombreDestino = cbDestino.getValue();
             if (nombreOrigen == null || nombreDestino == null) return;
-
             Atraccion origen  = parque.buscarAtraccion(nombreOrigen);
             Atraccion destino = parque.buscarAtraccion(nombreDestino);
             if (origen == null || destino == null) return;
@@ -494,20 +614,30 @@ public class VisitanteController {
     // ── Cerrar sesión ─────────────────────────────────────────────
     @FXML
     void cerrarSesion() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/ui/login/LoginView.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 720);
-            Stage stage = (Stage) panelCentral.getScene().getWindow();
-            stage.setTitle("TechPark UQ");
-            stage.setScene(scene);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cerrar sesión");
+        confirm.setHeaderText(null);
+        confirm.setContentText("¿Estás seguro que deseas cerrar sesión?");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                Main.visitanteActivo = null;
+                try {
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/ui/login/LoginView.fxml"));
+                    Scene scene = new Scene(loader.load(), 1280, 720);
+                    Stage stage = (Stage) panelCentral.getScene().getWindow();
+                    stage.setTitle("TechPark UQ");
+                    stage.setScene(scene);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     // ── Métodos privados ──────────────────────────────────────────
-    private void dibujarAristasVisitante(Pane panel, Map<Integer, double[]> coords,
+    private void dibujarAristasVisitante(Pane panel,
+                                         Map<Integer, double[]> coords,
                                          ListaEnlazada<Atraccion> atracciones) {
         for (int i = 0; i < atracciones.tamaño(); i++) {
             Atraccion origen = atracciones.obtener(i);
@@ -525,12 +655,10 @@ public class VisitanteController {
                 double midX = (posO[0] + posD[0]) / 2;
                 double midY = (posO[1] + posD[1]) / 2;
                 double peso = parque.getMapa().getPeso(origen.getId(), idDest);
-
-                javafx.scene.text.Text lblPeso =
-                        new javafx.scene.text.Text(midX - 10, midY - 5, (int) peso + "m");
+                javafx.scene.text.Text lblPeso = new javafx.scene.text.Text(
+                        midX - 10, midY - 5, (int) peso + "m");
                 lblPeso.setStyle("-fx-font-size: 9; -fx-font-weight: bold;");
                 lblPeso.setFill(javafx.scene.paint.Color.web("#455A64"));
-
                 javafx.scene.shape.Rectangle fondo =
                         new javafx.scene.shape.Rectangle();
                 fondo.setX(midX - 14);
@@ -541,13 +669,13 @@ public class VisitanteController {
                 fondo.setArcWidth(4);
                 fondo.setArcHeight(4);
                 fondo.setOpacity(0.85);
-
                 panel.getChildren().addAll(linea, fondo, lblPeso);
             }
         }
     }
 
-    private void dibujarNodosVisitante(Pane panel, Map<Integer, double[]> coords,
+    private void dibujarNodosVisitante(Pane panel,
+                                       Map<Integer, double[]> coords,
                                        ListaEnlazada<Atraccion> atracciones) {
         for (int i = 0; i < atracciones.tamaño(); i++) {
             Atraccion a = atracciones.obtener(i);
@@ -596,5 +724,3 @@ public class VisitanteController {
         alert.showAndWait();
     }
 }
-
-
