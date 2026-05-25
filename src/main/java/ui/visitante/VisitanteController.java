@@ -399,4 +399,95 @@ public class VisitanteController {
         panelCentral.getChildren().add(panel);
     }
 
+    // ── Ruta sugerida ─────────────────────────────────────────────
+    @FXML
+    void mostrarRuta() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(20));
+
+        Label titulo = new Label("🗾 Ruta Sugerida");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1F3864;");
+
+        ComboBox<String> cbOrigen  = new ComboBox<>();
+        ComboBox<String> cbDestino = new ComboBox<>();
+        cbOrigen.setPromptText("Desde");
+        cbDestino.setPromptText("Hasta");
+
+        ListaEnlazada<Atraccion> atracciones = parque.getMapa().getAtracciones();
+        for (int i = 0; i < atracciones.tamaño(); i++) {
+            String nombre = atracciones.obtener(i).getNombre();
+            cbOrigen.getItems().add(nombre);
+            cbDestino.getItems().add(nombre);
+        }
+
+        Label lblResultado = new Label("");
+        lblResultado.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E75B6;");
+
+        Pane panelGrafo = new Pane();
+        panelGrafo.setPrefSize(950, 460);
+        panelGrafo.setStyle("-fx-background-color: #F8FAFF; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 10; "
+                + "-fx-background-radius: 10;");
+
+        Map<Integer, double[]> coords = new HashMap<>();
+        int total = atracciones.tamaño();
+        double cx = 475, cy = 230, radio = 190;
+        for (int i = 0; i < total; i++) {
+            double angulo = 2 * Math.PI * i / total - Math.PI / 2;
+            coords.put(atracciones.obtener(i).getId(),
+                    new double[]{cx + radio * Math.cos(angulo),
+                            cy + radio * Math.sin(angulo)});
+        }
+
+        dibujarAristasVisitante(panelGrafo, coords, atracciones);
+        dibujarNodosVisitante(panelGrafo, coords, atracciones);
+
+        Button btnRuta = new Button("📍 Calcular Ruta");
+        btnRuta.setStyle("-fx-background-color: #1A4731; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 8 18; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnRuta.setOnAction(e -> {
+            String nombreOrigen  = cbOrigen.getValue();
+            String nombreDestino = cbDestino.getValue();
+            if (nombreOrigen == null || nombreDestino == null) return;
+
+            Atraccion origen  = parque.buscarAtraccion(nombreOrigen);
+            Atraccion destino = parque.buscarAtraccion(nombreDestino);
+            if (origen == null || destino == null) return;
+
+            panelGrafo.getChildren().clear();
+            dibujarAristasVisitante(panelGrafo, coords, atracciones);
+            dibujarNodosVisitante(panelGrafo, coords, atracciones);
+
+            ListaEnlazada<Atraccion> ruta =
+                    parque.getMapa().dijkstra(origen.getId(), destino.getId());
+
+            for (int i = 0; i < ruta.tamaño() - 1; i++) {
+                double[] posA = coords.get(ruta.obtener(i).getId());
+                double[] posB = coords.get(ruta.obtener(i + 1).getId());
+                if (posA == null || posB == null) continue;
+                Line rutaLinea = new Line(posA[0], posA[1], posB[0], posB[1]);
+                rutaLinea.setStroke(javafx.scene.paint.Color.web("#27AE60"));
+                rutaLinea.setStrokeWidth(5);
+                rutaLinea.setEffect(new javafx.scene.effect.DropShadow(6,
+                        javafx.scene.paint.Color.web("#1A4731")));
+                panelGrafo.getChildren().add(rutaLinea);
+            }
+
+            double distancia = 0;
+            for (int i = 0; i < ruta.tamaño() - 1; i++) {
+                distancia += parque.getMapa().getPeso(
+                        ruta.obtener(i).getId(), ruta.obtener(i + 1).getId());
+            }
+            lblResultado.setText("✅ Ruta: " + ruta.tamaño()
+                    + " atracciones | Distancia: " + (int) distancia + " m");
+        });
+
+        HBox controles = new HBox(10, cbOrigen, cbDestino, btnRuta, lblResultado);
+        controles.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        panel.getChildren().addAll(titulo, controles, panelGrafo);
+        panelCentral.getChildren().add(panel);
+    }
+
 
