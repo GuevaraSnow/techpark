@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Operador;
 import model.Parque;
@@ -17,10 +18,16 @@ import model.estructuras.ListaEnlazada;
 import model.gestores.ControlAcceso;
 import model.gestores.GestorColas;
 import techpark.Main;
+import java.io.File;
 
 public class OperadorController {
 
     @FXML private StackPane panelCentral;
+    @FXML private Label lblNombreOperador;
+    @FXML private Label lblZonaOperador;
+    @FXML private Label lblInicial;
+    @FXML private javafx.scene.shape.Circle avatarCirculo;
+    @FXML private javafx.scene.image.ImageView avatarImagen;
 
     private Parque parque;
     private Operador operador;
@@ -32,10 +39,10 @@ public class OperadorController {
     public void initialize() {
         this.parque        = Main.parque;
         this.operador      = Main.operadorActivo;
-        this.gestorColas   = Main.gestorColas; //
+        this.gestorColas   = Main.gestorColas;
         this.controlAcceso = new ControlAcceso();
 
-        // Buscar zona asignada al operador
+        // Buscar zona asignada
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {
             Zona z = parque.getZonas().obtener(i);
             for (int j = 0; j < z.getOperadores().tamaño(); j++) {
@@ -47,15 +54,161 @@ public class OperadorController {
             }
         }
 
-        // Registrar atracciones de la zona en el gestor de colas
-        if (zonaAsignada != null) {
-            for (int i = 0; i < zonaAsignada.getAtracciones().tamaño(); i++) {
-                gestorColas.registrarAtraccion(
-                        zonaAsignada.getAtracciones().obtener(i));
-            }
+        actualizarAvatarSidebar();
+        mostrarAtraccion();
+    }
+
+    // ── Actualizar avatar del sidebar ─────────────────────────────
+    private void actualizarAvatarSidebar() {
+        if (operador == null) return;
+        lblNombreOperador.setText(operador.getNombre());
+        lblInicial.setText(
+                String.valueOf(operador.getNombre().charAt(0)).toUpperCase());
+        lblZonaOperador.setText(
+                zonaAsignada != null ? zonaAsignada.getNombre() : "Sin zona");
+
+        if (operador.getFotoRuta() != null
+                && !operador.getFotoRuta().isEmpty()) {
+            try {
+                javafx.scene.image.Image img =
+                        new javafx.scene.image.Image(
+                                "file:" + operador.getFotoRuta());
+                avatarImagen.setImage(img);
+                javafx.scene.shape.Circle clip =
+                        new javafx.scene.shape.Circle(20, 20, 20);
+                avatarImagen.setClip(clip);
+                avatarCirculo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                lblInicial.setVisible(false);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    // ── Editar perfil ─────────────────────────────────────────────
+    @FXML
+    void editarPerfil() {
+        panelCentral.getChildren().clear();
+        VBox panel = new VBox(16);
+        panel.setPadding(new Insets(30));
+        panel.setMaxWidth(500);
+
+        Label titulo = new Label("✏ Editar Perfil");
+        titulo.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+
+        // Avatar grande
+        StackPane avatarGrande = new StackPane();
+        javafx.scene.shape.Circle circulo = new javafx.scene.shape.Circle(45);
+        circulo.setFill(javafx.scene.paint.Color.web("#7D3C98"));
+        circulo.setStroke(javafx.scene.paint.Color.web("#D0D7E3"));
+        circulo.setStrokeWidth(2);
+
+        Label inicialGrande = new Label(
+                String.valueOf(operador.getNombre().charAt(0)).toUpperCase());
+        inicialGrande.setStyle(
+                "-fx-text-fill: white; -fx-font-size: 32; -fx-font-weight: bold;");
+
+        javafx.scene.image.ImageView imgView =
+                new javafx.scene.image.ImageView();
+        imgView.setFitWidth(90);
+        imgView.setFitHeight(90);
+        imgView.setPreserveRatio(false);
+
+        if (operador.getFotoRuta() != null
+                && !operador.getFotoRuta().isEmpty()) {
+            try {
+                javafx.scene.image.Image img =
+                        new javafx.scene.image.Image(
+                                "file:" + operador.getFotoRuta());
+                imgView.setImage(img);
+                javafx.scene.shape.Circle clip =
+                        new javafx.scene.shape.Circle(45, 45, 45);
+                imgView.setClip(clip);
+                circulo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                inicialGrande.setVisible(false);
+            } catch (Exception ignored) {}
         }
 
-        mostrarAtraccion();
+        avatarGrande.getChildren().addAll(circulo, inicialGrande, imgView);
+
+        Button btnFoto = new Button("📷 Cambiar foto");
+        btnFoto.setStyle("-fx-background-color: #E8EEF5; -fx-text-fill: #4A235A; "
+                + "-fx-font-weight: bold; -fx-padding: 7 14; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnFoto.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Seleccionar foto de perfil");
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter(
+                            "Imágenes", "*.png", "*.jpg", "*.jpeg"));
+            File archivo = fc.showOpenDialog(
+                    panelCentral.getScene().getWindow());
+            if (archivo != null) {
+                operador.setFotoRuta(archivo.getAbsolutePath());
+                try {
+                    javafx.scene.image.Image img =
+                            new javafx.scene.image.Image(
+                                    "file:" + operador.getFotoRuta());
+                    imgView.setImage(img);
+                    javafx.scene.shape.Circle clip =
+                            new javafx.scene.shape.Circle(45, 45, 45);
+                    imgView.setClip(clip);
+                    circulo.setFill(javafx.scene.paint.Color.TRANSPARENT);
+                    inicialGrande.setVisible(false);
+                    actualizarAvatarSidebar();
+                } catch (Exception ignored) {}
+            }
+        });
+
+        VBox avatarBox = new VBox(8, avatarGrande, btnFoto);
+        avatarBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label lblNombreL = new Label("Nombre completo");
+        lblNombreL.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        TextField txtNombre = new TextField(operador.getNombre());
+        txtNombre.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 6;");
+
+        Label lblDocL = new Label("Documento (no editable)");
+        lblDocL.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        TextField txtDoc = new TextField(operador.getDocumento());
+        txtDoc.setEditable(false);
+        txtDoc.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 6; "
+                + "-fx-background-color: #F0F4F8;");
+
+        Label lblZonaL = new Label("Zona asignada (no editable)");
+        lblZonaL.setStyle("-fx-font-size: 12; -fx-text-fill: #555;");
+        TextField txtZona = new TextField(
+                zonaAsignada != null ? zonaAsignada.getNombre() : "Sin zona");
+        txtZona.setEditable(false);
+        txtZona.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; "
+                + "-fx-border-color: #D0D7E3; -fx-border-radius: 6; "
+                + "-fx-background-color: #F0F4F8;");
+
+        Button btnGuardar = new Button("💾 Guardar Cambios");
+        btnGuardar.setStyle("-fx-background-color: #4A235A; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 10 24; "
+                + "-fx-background-radius: 6; -fx-cursor: hand;");
+        btnGuardar.setOnAction(e -> {
+            String nuevoNombre = txtNombre.getText().trim();
+            if (nuevoNombre.isEmpty()) {
+                alerta("Campo requerido", "El nombre no puede estar vacío.");
+                return;
+            }
+            operador.setNombre(nuevoNombre);
+            actualizarAvatarSidebar();
+            parque.registrarNotificacion(
+                    "✏ Perfil de operador actualizado: " + nuevoNombre);
+            alerta("Perfil actualizado", "✅ Cambios guardados correctamente.");
+        });
+
+        panel.getChildren().addAll(
+                titulo, avatarBox,
+                lblNombreL, txtNombre,
+                lblDocL, txtDoc,
+                lblZonaL, txtZona,
+                btnGuardar
+        );
+        panelCentral.getChildren().add(panel);
     }
 
     // ── Mi Atracción ──────────────────────────────────────────────
@@ -76,7 +229,8 @@ public class OperadorController {
         }
 
         Label lblZona = new Label("📍 Zona: " + zonaAsignada.getNombre());
-        lblZona.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
+        lblZona.setStyle(
+                "-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
 
         TableView<String[]> tabla = new TableView<>();
         TableColumn<String[], String> colNombre     = new TableColumn<>("Atracción");
@@ -110,14 +264,13 @@ public class OperadorController {
             }
         });
 
-        tabla.getColumns().addAll(colNombre, colEstado,
-                colVisitantes, colCapacidad, colEspera);
+        tabla.getColumns().addAll(
+                colNombre, colEstado, colVisitantes, colCapacidad, colEspera);
 
         for (int i = 0; i < zonaAsignada.getAtracciones().tamaño(); i++) {
             Atraccion a = zonaAsignada.getAtracciones().obtener(i);
             tabla.getItems().add(new String[]{
-                    a.getNombre(),
-                    a.getEstado().toString(),
+                    a.getNombre(), a.getEstado().toString(),
                     String.valueOf(a.getContadorVisitantes()),
                     String.valueOf(a.getCapacidad()),
                     "~" + (int) a.getTiempoEspera() + " min"
@@ -145,7 +298,6 @@ public class OperadorController {
             return;
         }
 
-        // Seleccionar atracción
         ComboBox<String> cbAtraccion = new ComboBox<>();
         for (int i = 0; i < zonaAsignada.getAtracciones().tamaño(); i++) {
             cbAtraccion.getItems().add(
@@ -170,16 +322,17 @@ public class OperadorController {
                 listaCola.getItems().add("✅ Cola vacía");
             } else {
                 listaCola.getItems().add("Total en cola: " + tam + " visitantes");
-                listaCola.getItems().add("👑 Siguiente: "
-                        + gestorColas.verSiguiente(a).getNombre()
-                        + " ("  + gestorColas.verSiguiente(a)
-                        .getTicket().getTipo() + ")");
+                Visitante sig = gestorColas.verSiguiente(a);
+                if (sig != null) {
+                    listaCola.getItems().add("👑 Siguiente: "
+                            + sig.getNombre()
+                            + " (" + sig.getTicket().getTipo() + ")");
+                }
             }
             lblInfo.setText("Capacidad del ciclo: "
                     + a.getContadorActual() + " / " + a.getCapacidad());
         });
 
-        // Botón procesar siguiente
         Button btnProcesar = new Button("▶ Procesar Siguiente");
         btnProcesar.setStyle("-fx-background-color: #4A235A; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
@@ -201,18 +354,15 @@ public class OperadorController {
                 gestorColas.desencolarConNotificacion(a);
                 alerta("✅ Ingreso autorizado", resultado.mensaje);
             } else {
-                gestorColas.desencolar(a); // sacar de cola aunque no pase
+                gestorColas.desencolar(a);
                 alerta("❌ Ingreso denegado", resultado.mensaje);
             }
 
-            // Refrescar
             cbAtraccion.getOnAction().handle(null);
         });
 
-        HBox filtro = new HBox(10,
-                new Label("Atracción:"), cbAtraccion);
+        HBox filtro = new HBox(10, new Label("Atracción:"), cbAtraccion);
         filtro.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
         panel.getChildren().addAll(titulo, filtro, listaCola, lblInfo, btnProcesar);
         panelCentral.getChildren().add(panel);
     }
@@ -243,7 +393,6 @@ public class OperadorController {
 
         Label lblEstadoActual = new Label("Estado: —");
         lblEstadoActual.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
-
         Label lblMotivo = new Label("");
         lblMotivo.setStyle("-fx-font-size: 12; -fx-text-fill: #C0392B;");
 
@@ -258,7 +407,6 @@ public class OperadorController {
                     "Motivo: " + a.getMotivoCierre());
         });
 
-        // Cambiar estado
         ComboBox<String> cbNuevoEstado = new ComboBox<>();
         cbNuevoEstado.getItems().addAll("ACTIVA", "CERRADA");
         cbNuevoEstado.setPromptText("Nuevo estado");
@@ -294,7 +442,6 @@ public class OperadorController {
                     "✅ Estado de " + nombre + " cambiado a " + nuevoEstado);
         });
 
-        // Registrar revisión técnica
         Button btnRevision = new Button("🔧 Registrar Revisión Técnica");
         btnRevision.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; "
                 + "-fx-font-weight: bold; -fx-padding: 8 18; "
@@ -323,7 +470,6 @@ public class OperadorController {
         Label lblCambioEstado = new Label("✏ Cambiar estado de atracción");
         lblCambioEstado.setStyle(
                 "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
-
         Label lblRevision = new Label("🔧 Revisión técnica");
         lblRevision.setStyle(
                 "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #4A235A;");
@@ -348,16 +494,25 @@ public class OperadorController {
     // ── Cerrar sesión ─────────────────────────────────────────────
     @FXML
     void cerrarSesion() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/ui/login/LoginView.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 720);
-            Stage stage = (Stage) panelCentral.getScene().getWindow();
-            stage.setTitle("TechPark UQ");
-            stage.setScene(scene);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cerrar sesión");
+        confirm.setHeaderText(null);
+        confirm.setContentText("¿Estás seguro que deseas cerrar sesión?");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                Main.operadorActivo = null;
+                try {
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/ui/login/LoginView.fxml"));
+                    Scene scene = new Scene(loader.load(), 1280, 720);
+                    Stage stage = (Stage) panelCentral.getScene().getWindow();
+                    stage.setTitle("TechPark UQ");
+                    stage.setScene(scene);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void alerta(String titulo, String mensaje) {

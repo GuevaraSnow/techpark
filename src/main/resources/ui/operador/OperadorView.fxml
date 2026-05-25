@@ -22,27 +22,65 @@
 
             <Separator style="-fx-background-color: rgba(255,255,255,0.2);"/>
 
-            <Button text="🎢 Mi Atracción"
-                    styleClass="sidebar-btn"
-                    onAction="#mostrarAtraccion"
-                    maxWidth="Infinity"/>
-            <Button text="👥 Cola de Visitantes"
-                    styleClass="sidebar-btn"
-                    onAction="#mostrarCola"
-                    maxWidth="Infinity"/>
-            <Button text="⚙ Estado y Revisión"
-                    styleClass="sidebar-btn"
-                    onAction="#mostrarEstado"
-                    maxWidth="Infinity"/>
+            <Button text="🎢 Mi Atracción"      styleClass="sidebar-btn" onAction="#mostrarAtraccion" maxWidth="Infinity"/>
+            <Button text="👥 Cola de Visitantes" styleClass="sidebar-btn" onAction="#mostrarCola"      maxWidth="Infinity"/>
+            <Button text="⚙ Estado y Revisión"  styleClass="sidebar-btn" onAction="#mostrarEstado"    maxWidth="Infinity"/>
 
             <VBox VBox.vgrow="ALWAYS"/>
 
-            <Button text="🚪 Cerrar Sesión"
-                    onAction="#cerrarSesion"
-                    maxWidth="Infinity"
-                    style="-fx-background-color: rgba(255,255,255,0.1);
-                           -fx-text-fill: white; -fx-padding: 8 12;
-                           -fx-background-radius: 6; -fx-cursor: hand;"/>
+            <Separator style="-fx-background-color: rgba(255,255,255,0.15);"/>
+
+            <!-- Tarjeta de perfil -->
+            <VBox spacing="6"
+                  style="-fx-background-color: rgba(255,255,255,0.08);
+                         -fx-background-radius: 10; -fx-padding: 12 10;">
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <StackPane>
+                        <javafx.scene.shape.Circle
+                                fx:id="avatarCirculo"
+                                radius="20"
+                                fill="#7D3C98"
+                                stroke="rgba(255,255,255,0.3)"
+                                strokeWidth="1.5"/>
+                        <javafx.scene.image.ImageView
+                                fx:id="avatarImagen"
+                                fitWidth="40" fitHeight="40"/>
+                        <Label fx:id="lblInicial"
+                               text="O"
+                               style="-fx-text-fill: white;
+                                      -fx-font-weight: bold;
+                                      -fx-font-size: 16;"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Label fx:id="lblNombreOperador"
+                               text="Operador"
+                               style="-fx-text-fill: white;
+                                      -fx-font-size: 11;
+                                      -fx-font-weight: bold;"/>
+                        <Label fx:id="lblZonaOperador"
+                               text="Sin zona"
+                               style="-fx-text-fill: #D7BDE2;
+                                      -fx-font-size: 10;"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="6">
+                    <Button text="✏ Perfil"
+                            onAction="#editarPerfil"
+                            style="-fx-background-color: rgba(255,255,255,0.15);
+                                   -fx-text-fill: white; -fx-font-size: 10;
+                                   -fx-padding: 5 8; -fx-background-radius: 5;
+                                   -fx-cursor: hand;"
+                            HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button text="🚪"
+                            onAction="#cerrarSesion"
+                            style="-fx-background-color: rgba(192,57,43,0.7);
+                                   -fx-text-fill: white; -fx-font-size: 12;
+                                   -fx-padding: 5 8; -fx-background-radius: 5;
+                                   -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
         </VBox>
     </left>
 
