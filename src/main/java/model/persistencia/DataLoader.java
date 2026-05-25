@@ -24,7 +24,6 @@ public class DataLoader {
         this.parque = parque;
     }
 
-    // Carga todo el escenario desde un archivo JSON
     public void cargarEscenario(String rutaArchivo) {
         try {
             String contenido = Files.readString(Path.of(rutaArchivo));
@@ -45,17 +44,14 @@ public class DataLoader {
         }
     }
 
-    // ── Zonas ─────────────────────────────────────────────────────
     private void cargarZonas(JsonArray jsonZonas) {
         for (JsonElement elem : jsonZonas) {
             JsonObject obj = elem.getAsJsonObject();
-            String nombre = obj.get("nombre").getAsString();
-            parque.agregarZona(new Zona(nombre));
+            parque.agregarZona(new Zona(obj.get("nombre").getAsString()));
         }
         System.out.println("   → Zonas cargadas: " + parque.getZonas().tamaño());
     }
 
-    // ── Atracciones ───────────────────────────────────────────────
     private void cargarAtracciones(JsonArray jsonAtracciones) {
         for (JsonElement elem : jsonAtracciones) {
             JsonObject obj = elem.getAsJsonObject();
@@ -68,13 +64,11 @@ public class DataLoader {
                     obj.get("edadMin").getAsInt(),
                     obj.get("costoExtra").getAsDouble()
             );
-            String zona = obj.get("zona").getAsString();
-            parque.agregarAtraccionAZona(zona, a);
+            parque.agregarAtraccionAZona(obj.get("zona").getAsString(), a);
         }
         System.out.println("   → Atracciones cargadas: " + parque.getMapa().tamaño());
     }
 
-    // ── Visitantes ────────────────────────────────────────────────
     private void cargarVisitantes(JsonArray jsonVisitantes) {
         for (JsonElement elem : jsonVisitantes) {
             JsonObject obj = elem.getAsJsonObject();
@@ -85,6 +79,11 @@ public class DataLoader {
                     obj.get("estatura").getAsDouble()
             );
             v.recargarSaldo(obj.get("saldo").getAsDouble());
+
+            // Cargar foto si existe
+            if (obj.has("fotoRuta") && !obj.get("fotoRuta").isJsonNull()) {
+                v.setFotoRuta(obj.get("fotoRuta").getAsString());
+            }
 
             String tipo = obj.get("tipoTicket").getAsString();
             switch (tipo) {
@@ -97,19 +96,24 @@ public class DataLoader {
         System.out.println("   → Visitantes cargados: " + parque.getVisitantes().tamaño());
     }
 
-    // ── Operadores ────────────────────────────────────────────────
     private void cargarOperadores(JsonArray jsonOperadores) {
         for (JsonElement elem : jsonOperadores) {
             JsonObject obj = elem.getAsJsonObject();
-            String nombre   = obj.get("nombre").getAsString();
+            String nombre    = obj.get("nombre").getAsString();
             String documento = obj.get("documento").getAsString();
-            boolean esAdmin = obj.has("esAdmin") && obj.get("esAdmin").getAsBoolean();
+            boolean esAdmin  = obj.has("esAdmin") && obj.get("esAdmin").getAsBoolean();
 
             if (esAdmin) {
                 Administrador admin = new Administrador(nombre, documento);
+                if (obj.has("fotoRuta") && !obj.get("fotoRuta").isJsonNull()) {
+                    admin.setFotoRuta(obj.get("fotoRuta").getAsString());
+                }
                 parque.agregarEmpleado(admin);
             } else {
                 Operador op = new Operador(nombre, documento);
+                if (obj.has("fotoRuta") && !obj.get("fotoRuta").isJsonNull()) {
+                    op.setFotoRuta(obj.get("fotoRuta").getAsString());
+                }
                 String nombreZona = obj.get("zona").getAsString();
                 Zona zona = parque.buscarZona(nombreZona);
                 if (zona != null) zona.agregarOperador(op);
@@ -119,21 +123,20 @@ public class DataLoader {
         System.out.println("   → Operadores cargados: " + parque.getEmpleados().tamaño());
     }
 
-    // ── Senderos (aristas del grafo) ──────────────────────────────
     private void cargarSenderos(JsonArray jsonSenderos) {
         int contador = 0;
         for (JsonElement elem : jsonSenderos) {
             JsonObject obj = elem.getAsJsonObject();
-            int origen  = obj.get("origen").getAsInt();
-            int destino = obj.get("destino").getAsInt();
-            double peso = obj.get("peso").getAsDouble();
-            parque.getMapa().agregarArista(origen, destino, peso);
+            parque.getMapa().agregarArista(
+                    obj.get("origen").getAsInt(),
+                    obj.get("destino").getAsInt(),
+                    obj.get("peso").getAsDouble()
+            );
             contador++;
         }
         System.out.println("   → Senderos cargados: " + contador);
     }
 
-    // ── Guardar estado actual del parque en JSON ──────────────────
     public void guardarEstado(String rutaArchivo) {
         JsonObject root = new JsonObject();
 
@@ -153,14 +156,14 @@ public class DataLoader {
             for (int j = 0; j < zona.getAtracciones().tamaño(); j++) {
                 Atraccion a = zona.getAtracciones().obtener(j);
                 JsonObject obj = new JsonObject();
-                obj.addProperty("id",        a.getId());
-                obj.addProperty("nombre",    a.getNombre());
-                obj.addProperty("tipo",      a.getTipo());
-                obj.addProperty("capacidad", a.getCapacidad());
-                obj.addProperty("alturaMin", a.getAlturaMin());
-                obj.addProperty("edadMin",   a.getEdadMin());
-                obj.addProperty("costoExtra",a.getCostoExtra());
-                obj.addProperty("zona",      zona.getNombre());
+                obj.addProperty("id",         a.getId());
+                obj.addProperty("nombre",     a.getNombre());
+                obj.addProperty("tipo",       a.getTipo());
+                obj.addProperty("capacidad",  a.getCapacidad());
+                obj.addProperty("alturaMin",  a.getAlturaMin());
+                obj.addProperty("edadMin",    a.getEdadMin());
+                obj.addProperty("costoExtra", a.getCostoExtra());
+                obj.addProperty("zona",       zona.getNombre());
                 atracciones.add(obj);
             }
         }
@@ -169,7 +172,7 @@ public class DataLoader {
         // Visitantes
         JsonArray visitantes = new JsonArray();
         for (int i = 0; i < parque.getVisitantes().tamaño(); i++) {
-            model.Visitante v = parque.getVisitantes().obtener(i);
+            Visitante v = parque.getVisitantes().obtener(i);
             JsonObject obj = new JsonObject();
             obj.addProperty("nombre",     v.getNombre());
             obj.addProperty("documento",  v.getDocumento());
@@ -178,33 +181,41 @@ public class DataLoader {
             obj.addProperty("saldo",      v.getSaldo());
             obj.addProperty("tipoTicket", v.getTicket() != null ?
                     v.getTicket().getTipo().toString() : "GENERAL");
+            // ✅ Guardar foto
+            obj.addProperty("fotoRuta",
+                    v.getFotoRuta() != null ? v.getFotoRuta() : "");
             visitantes.add(obj);
         }
         root.add("visitantes", visitantes);
 
-        // Operadores
+        // Operadores y Admin
         JsonArray operadores = new JsonArray();
         for (int i = 0; i < parque.getEmpleados().tamaño(); i++) {
-            model.Empleado emp = parque.getEmpleados().obtener(i);
-            if (emp instanceof model.Operador) {
-                model.Operador op = (model.Operador) emp;
-                JsonObject obj = new JsonObject();
-                obj.addProperty("nombre",    op.getNombre());
-                obj.addProperty("documento", op.getDocumento());
-                // Buscar zona del operador
+            Empleado emp = parque.getEmpleados().obtener(i);
+            JsonObject obj = new JsonObject();
+            obj.addProperty("nombre",    emp.getNombre());
+            obj.addProperty("documento", emp.getDocumento());
+            // ✅ Guardar foto
+            obj.addProperty("fotoRuta",
+                    emp.getFotoRuta() != null ? emp.getFotoRuta() : "");
+
+            if (emp instanceof Administrador) {
+                obj.addProperty("zona",    "Zona Aventura");
+                obj.addProperty("esAdmin", true);
+            } else if (emp instanceof Operador) {
                 String zonaOp = "Sin zona";
                 for (int j = 0; j < parque.getZonas().tamaño(); j++) {
                     Zona zona = parque.getZonas().obtener(j);
                     for (int k = 0; k < zona.getOperadores().tamaño(); k++) {
                         if (zona.getOperadores().obtener(k)
-                                .getDocumento().equals(op.getDocumento())) {
+                                .getDocumento().equals(emp.getDocumento())) {
                             zonaOp = zona.getNombre();
                         }
                     }
                 }
                 obj.addProperty("zona", zonaOp);
-                operadores.add(obj);
             }
+            operadores.add(obj);
         }
         root.add("operadores", operadores);
 
@@ -222,7 +233,8 @@ public class DataLoader {
                 JsonObject obj = new JsonObject();
                 obj.addProperty("origen",  origen.getId());
                 obj.addProperty("destino", idDest);
-                obj.addProperty("peso",    parque.getMapa().getPeso(origen.getId(), idDest));
+                obj.addProperty("peso",
+                        parque.getMapa().getPeso(origen.getId(), idDest));
                 senderos.add(obj);
             }
         }
