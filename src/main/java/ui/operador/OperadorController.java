@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import model.Operador;
 import model.Parque;
 import model.Visitante;
@@ -343,3 +344,27 @@ public class OperadorController {
         );
         panelCentral.getChildren().add(panel);
     }
+
+    // ── Cerrar sesión ─────────────────────────────────────────────
+    @FXML
+    void cerrarSesion() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/ui/login/LoginView.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 720);
+            Stage stage = (Stage) panelCentral.getScene().getWindow();
+            stage.setTitle("TechPark UQ");
+            stage.setScene(scene);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void alerta(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
+    }
+}
