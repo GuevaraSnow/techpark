@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import java.net.URL?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.operador.OperadorController"
+            prefWidth="1280" prefHeight="720">
+
+    <stylesheets>
+        <URL value="@../styles/styles.css"/>
+    </stylesheets>
+
+    <left>
+        <VBox prefWidth="200"
+              style="-fx-background-color: #4A235A; -fx-padding: 20; -fx-spacing: 8;">
+
+            <Label text="🔧 OPERADOR"
+                   style="-fx-text-fill: #FFD700; -fx-font-size: 14;
+                          -fx-font-weight: bold; -fx-padding: 0 0 10 5;"/>
+
+            <Separator style="-fx-background-color: rgba(255,255,255,0.2);"/>
+
+            <Button text="🎢 Mi Atracción"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarAtraccion"
+                    maxWidth="Infinity"/>
+            <Button text="👥 Cola de Visitantes"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarCola"
+                    maxWidth="Infinity"/>
+            <Button text="⚙ Estado y Revisión"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarEstado"
+                    maxWidth="Infinity"/>
+
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <Button text="🚪 Cerrar Sesión"
+                    onAction="#cerrarSesion"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: rgba(255,255,255,0.1);
+                           -fx-text-fill: white; -fx-padding: 8 12;
+                           -fx-background-radius: 6; -fx-cursor: hand;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <StackPane fx:id="panelCentral"
+                   style="-fx-background-color: #F0F4F8;"/>
+    </center>
+</BorderPane>
