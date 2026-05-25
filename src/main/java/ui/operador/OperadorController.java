@@ -30,9 +30,9 @@ public class OperadorController {
 
     @FXML
     public void initialize() {
-        this.parque       = Main.parque;
-        this.operador     = Main.operadorActivo;
-        this.gestorColas  = new GestorColas();
+        this.parque        = Main.parque;
+        this.operador      = Main.operadorActivo;
+        this.gestorColas   = Main.gestorColas; //
         this.controlAcceso = new ControlAcceso();
 
         // Buscar zona asignada al operador

@@ -32,10 +32,11 @@ public class VisitanteController {
 
     @FXML
     public void initialize() {
-        this.parque       = Main.parque;
-        this.visitante    = Main.visitanteActivo;
-        this.gestorColas  = new GestorColas();
+        this.parque        = Main.parque;
+        this.visitante     = Main.visitanteActivo;
+        this.gestorColas   = Main.gestorColas; //
         this.controlAcceso = new ControlAcceso();
+        mostrarPerfil();
 
         // Registrar todas las atracciones en el gestor de colas
         for (int i = 0; i < parque.getZonas().tamaño(); i++) {

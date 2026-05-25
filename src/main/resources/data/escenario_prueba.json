@@ -126,10 +126,11 @@
     }
   ],
   "operadores": [
-    { "nombre": "Luis Herrera",   "documento": "1011111111", "zona": "Zona Aventura" },
-    { "nombre": "Sara Castro",    "documento": "1022222222", "zona": "Zona Acuática" },
-    { "nombre": "Pedro Vargas",   "documento": "1033333333", "zona": "Zona Infantil" },
-    { "nombre": "Diana Morales",  "documento": "1044444444", "zona": "Zona Extrema"  }
+      { "nombre": "Luis Herrera",            "documento": "1011111111", "zona": "Zona Aventura" },
+      { "nombre": "Sara Castro",             "documento": "1022222222", "zona": "Zona Acuática" },
+      { "nombre": "Pedro Vargas",            "documento": "1033333333", "zona": "Zona Infantil" },
+      { "nombre": "Diana Morales",           "documento": "1044444444", "zona": "Zona Extrema"  },
+      { "nombre": "Administrador Principal", "documento": "admin",      "zona": "Zona Aventura", "esAdmin": true }
   ],
   "senderos": [
     { "origen": 1, "destino": 2, "peso": 120 },

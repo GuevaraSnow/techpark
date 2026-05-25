@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import java.net.URL?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ui.visitante.VisitanteController"
+            prefWidth="1280" prefHeight="720">
+
+    <stylesheets>
+        <URL value="@../styles/styles.css"/>
+    </stylesheets>
+
+    <!-- Sidebar -->
+    <left>
+        <VBox prefWidth="200"
+              style="-fx-background-color: #1A4731; -fx-padding: 20; -fx-spacing: 8;">
+
+            <Label text="🎢 VISITANTE"
+                   style="-fx-text-fill: #FFD700; -fx-font-size: 14;
+                          -fx-font-weight: bold; -fx-padding: 0 0 10 5;"/>
+
+            <Separator style="-fx-background-color: rgba(255,255,255,0.2);"/>
+
+            <Button text="👤 Mi Perfil"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarPerfil"
+                    maxWidth="Infinity"/>
+            <Button text="🎢 Atracciones"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarAtracciones"
+                    maxWidth="Infinity"/>
+            <Button text="❤ Favoritos"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarFavoritos"
+                    maxWidth="Infinity"/>
+            <Button text="📋 Historial"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarHistorial"
+                    maxWidth="Infinity"/>
+            <Button text="🎫 Mi Cola"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarCola"
+                    maxWidth="Infinity"/>
+            <Button text="🗾 Ruta Sugerida"
+                    styleClass="sidebar-btn"
+                    onAction="#mostrarRuta"
+                    maxWidth="Infinity"/>
+
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <Button text="🚪 Cerrar Sesión"
+                    onAction="#cerrarSesion"
+                    maxWidth="Infinity"
+                    style="-fx-background-color: rgba(255,255,255,0.1);
+                           -fx-text-fill: white; -fx-padding: 8 12;
+                           -fx-background-radius: 6; -fx-cursor: hand;"/>
+        </VBox>
+    </left>
+
+    <!-- Panel central -->
+    <center>
+        <StackPane fx:id="panelCentral"
+                   style="-fx-background-color: #F0F4F8; -fx-padding: 0;"/>
+    </center>
+</BorderPane>

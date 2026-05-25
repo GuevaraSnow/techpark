@@ -101,14 +101,20 @@ public class DataLoader {
     private void cargarOperadores(JsonArray jsonOperadores) {
         for (JsonElement elem : jsonOperadores) {
             JsonObject obj = elem.getAsJsonObject();
-            Operador op = new Operador(
-                    obj.get("nombre").getAsString(),
-                    obj.get("documento").getAsString()
-            );
-            String nombreZona = obj.get("zona").getAsString();
-            Zona zona = parque.buscarZona(nombreZona);
-            if (zona != null) zona.agregarOperador(op);
-            parque.agregarEmpleado(op);
+            String nombre   = obj.get("nombre").getAsString();
+            String documento = obj.get("documento").getAsString();
+            boolean esAdmin = obj.has("esAdmin") && obj.get("esAdmin").getAsBoolean();
+
+            if (esAdmin) {
+                Administrador admin = new Administrador(nombre, documento);
+                parque.agregarEmpleado(admin);
+            } else {
+                Operador op = new Operador(nombre, documento);
+                String nombreZona = obj.get("zona").getAsString();
+                Zona zona = parque.buscarZona(nombreZona);
+                if (zona != null) zona.agregarOperador(op);
+                parque.agregarEmpleado(op);
+            }
         }
         System.out.println("   → Operadores cargados: " + parque.getEmpleados().tamaño());
     }
