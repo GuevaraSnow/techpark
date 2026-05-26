@@ -18,11 +18,11 @@ public class GestorColas {
     }
 
     private ListaEnlazada<EntradaCola> colas;
-    private ListaEnlazada<String> notificaciones; // ✅ declarado aquí
+    private ListaEnlazada<String> notificaciones; //  declarado aquí
 
     public GestorColas() {
         this.colas = new ListaEnlazada<>();
-        this.notificaciones = new ListaEnlazada<>(); // ✅ inicializado en constructor
+        this.notificaciones = new ListaEnlazada<>(); // inicializado en constructor
     }
 
     public void registrarAtraccion(Atraccion atraccion) {
@@ -74,7 +74,7 @@ public class GestorColas {
         if (siguiente != null) {
             String notif = "✅ " + siguiente.getNombre()
                     + " — es tu turno en: " + atraccion.getNombre();
-            notificaciones.agregar(notif); // ✅ ya no es null
+            notificaciones.agregar(notif); // ya no es null
         }
         return siguiente;
     }
